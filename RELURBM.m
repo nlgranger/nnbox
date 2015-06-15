@@ -1,13 +1,12 @@
 classdef RELURBM < handle & AbstractNet
     % RELURBM Restricted Boltzmann Machine model
-    %   RBM implements AbstractNet for Restricted Boltzmann Machines with 
+    %   RBM implements AbstractNet for Restricted Boltzmann Machines with
     %   rectified linear units on both visible and hidden units.
     %
-    %   Pretraining regularization includes L2 and L1 weight decay, dropout and 
-    %   hidden units sparsity.
+    %   Pretraining regularization includes L2 and L1 weight decay, dropout
+    %   and hidden units sparsity.
     %
-    %   author:
-    %   Nicolas Granger <nicolas.granger@telecom-sudparis.eu>
+    %   author: Nicolas Granger <nicolas.granger@telecom-sudparis.eu>
     
     properties
         nVis;                  % # of visible units (dimensions)
@@ -23,14 +22,15 @@ classdef RELURBM < handle & AbstractNet
     
     methods
         
-        % Constructor *********************************************************
+        % Constructor
+        % *********************************************************
         
-        function obj = RBM(nVis, nHid, pretrainOpts, trainOpts, varargin)
+        function obj = RELURBM(nVis, nHid, pretrainOpts, trainOpts, varargin)
             obj.nVis         = nVis;
             obj.nHid         = nHid;
 
-            if ~isfield(pretrainOpts, 'dropHid')
-                pretrainOpts.dropHid = 0;
+            if ~isfield(pretrainOpts, 'dropout')
+                pretrainOpts.dropout = 0;
             end
             if ~isfield(pretrainOpts, 'momentum')
                 pretrainOpts.momentum = 0;
@@ -46,14 +46,14 @@ classdef RELURBM < handle & AbstractNet
                 obj.hasHidBias = false;
             end
             
-            % Initializing weights 'à la Bengio'
-            range = sqrt(6/(2*obj.nVis));
-            obj.W = 2 * range * (rand(nVis, nHid) - .5);
-            obj.b = zeros(nVis, 1);
-            obj.c = zeros(nHid, 1);
+            % Initializing weights
+            obj.W = abs(randn(nVis, nHid)/(2*nVis));
+            obj.b = ones(nVis, 1) * 1;
+            obj.c = ones(nHid, 1) * 1;
         end
         
-        % AbstractNet implementation ******************************************
+        % AbstractNet implementation
+        % ******************************************
         
         function S = insize(self)
             S = self.nVis;
@@ -77,7 +77,6 @@ classdef RELURBM < handle & AbstractNet
             dWold   = zeros(size(self.W));
             dbold   = zeros(size(self.b));
             dcold   = zeros(size(self.c));
-            act     = zeros(self.nHid, 1); % mean activity of hidden units
 
             for e = 1:opts.nEpochs
                 shuffle  = randperm(nObs);
@@ -88,19 +87,7 @@ classdef RELURBM < handle & AbstractNet
                         batchBeg + opts.batchSz -1));
                                         
                     % Gibbs sampling
-                    [dW, db, dc, hid] = self.cd(X(:,bind));
-                    
-                    % Activity estimation (Hinton 2010)
-                    if isfield(opts, 'sparsity') && e > opts.wDecayDelay
-                        act = .9 * act + .1 * mean(hid, 2);
-                    end
-                    % Hidden layer selectivity
-                    if isfield(opts, 'selectivity') && e > opts.wDecayDelay
-                        err = mean(hid, 1) - opts.selectivity;
-                        ds  = bsxfun(@times, hid .* (1 - hid), err);
-                        dW  = dW + opts.selectivityGain * X(:,bind) * ds' / nObs;
-                        dc  = dc + mean(ds, 2);
-                    end
+                    [dW, db, dc] = self.cd(X(:,bind));
                     
                     % Weight decay
                     if isfield(opts, 'wPenalty') && e > opts.wDecayDelay
@@ -117,7 +104,7 @@ classdef RELURBM < handle & AbstractNet
                     % Apply gradient
                     self.W = self.W - opts.lRate * dW;
                     self.b = self.b - opts.lRate * db;
-                    if opts.hasHidBias
+                    if self.hasHidBias
                         self.c = self.c - opts.lRate * dc;
                     else
                         dc = zeros(self.nHid, 1);
@@ -129,18 +116,12 @@ classdef RELURBM < handle & AbstractNet
                     dcold = dc;
                 end
                 
-                % Unit-wise sparsity (Hinton 2010)
-                if isfield(opts, 'sparsity') && e > opts.wDecayDelay
-                    dc = opts.lRate * opts.sparseGain * (act - opts.sparsity);
-                    self.W = bsxfun(@minus, self.W, dc');
-                    self.c = self.c - dc;
-                end
-                
                 % Report
                 if isfield(opts, 'displayEvery') ...
                         && mod(e, opts.displayEvery) == 0
                     % Reconstruct input samples
-                    R = self.hid2vis(self.vis2hid(X));
+                    R = self.compute(X);
+                    R = max(0, bsxfun(@plus, self.W * R, self.b));
                     % Mean square reconstruction error
                     msre = mean(sqrt(mean((R - X) .^2)), 2);
                     fprintf('%03d , msre = %f\n', e, msre);
@@ -152,8 +133,8 @@ classdef RELURBM < handle & AbstractNet
             % backprop implementation of AbstractNet.backprop
             %   inErr = backprop(self, A, outErr, opts)
             %
-            %   A      -- forward pass data as return by compute
-            %   outErr -- network output error derivative w.r.t. output
+            %   A      -- forward pass data as return by compute outErr --
+            %   network output error derivative w.r.t. output
             %             neurons stimulation
             %
             %   inErr  -- network output error derivative w.r.t. neurons
@@ -161,7 +142,7 @@ classdef RELURBM < handle & AbstractNet
             nSamples = size(outErr, 2);
             
             % Gradient computation
-            delta  = (outErr .* A.ds);
+            delta  = outErr .* A.ds;
             G.dW   = A.x * delta' / nSamples;
             G.dc   = mean(delta, 2);
             
@@ -204,9 +185,10 @@ classdef RELURBM < handle & AbstractNet
             end
         end
         
-        % Methods *************************************************************
+        % Methods
+        % *************************************************************
    
-        function [dW, db, dc, hid0] = cd(self, X)
+        function [dW, db, dc] = cd(self, X)
             % CD Contrastive divergence (Hinton's CD(k))
             %   [dW, db, dc, act] = cd(self, X) returns the gradients of
             %   the weihgts, visible and hidden biases using Hinton's
@@ -218,12 +200,13 @@ classdef RELURBM < handle & AbstractNet
             vis0 = X;
             act  = bsxfun(@plus, (vis0' * self.W)', self.c);
             hid0 = max(0, act);
-            hid  = max(0, act + randn(self.nHid, 1) .* act);
-            if opts.dropHid > 0
-                hmask = rand(size(hid0)) < opts.dropHid;
-                hid = hid .* hmask / (1 - opts.dropHid);
+            hid  = max(0, act + randn(self.nHid, nObs) .* sqrt(act));
+            act  = bsxfun(@plus, self.W * hid, self.b);
+            if opts.dropout > 0
+                hmask = rand(size(act)) < opts.dropHid;
+                act = act .* hmask / (1 - opts.dropHid);
             end
-            vis  = max(0, bsxfun(@plus, self.W * hid, self.b));
+            vis  = max(0, act);
             hid  = max(0, bsxfun(@plus, (vis' * self.W)', self.c));
             
             dW   = - (vis0 * hid0' - vis * hid') / nObs;
