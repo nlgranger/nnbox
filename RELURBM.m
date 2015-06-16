@@ -22,13 +22,15 @@ classdef RELURBM < handle & AbstractNet
     
     methods
         
-        % Constructor
-        % *********************************************************
+        % Constructor *********************************************************
         
         function obj = RELURBM(nVis, nHid, pretrainOpts, trainOpts, varargin)
             obj.nVis         = nVis;
             obj.nHid         = nHid;
-
+            
+            if ~isfield(pretrainOpts, 'visDrop')
+                pretrainOpts.visDrop = 0;
+            end
             if ~isfield(pretrainOpts, 'dropout')
                 pretrainOpts.dropout = 0;
             end
@@ -52,8 +54,7 @@ classdef RELURBM < handle & AbstractNet
             obj.c = ones(nHid, 1) * 1;
         end
         
-        % AbstractNet implementation
-        % ******************************************
+        % AbstractNet implementation ******************************************
         
         function S = insize(self)
             S = self.nVis;
@@ -62,7 +63,7 @@ classdef RELURBM < handle & AbstractNet
         function S = outsize(self)
             S = self.nHid;
         end
-
+        
         function [Y, A] = compute(self, X)
             Y = max(0, bsxfun(@plus, (X' * self.W)', self.c));
             if nargout > 1
@@ -70,30 +71,30 @@ classdef RELURBM < handle & AbstractNet
                 A.ds = Y>0;
             end
         end
-
+        
         function [] = pretrain(self, X)
             nObs = size(X, 2);
             opts = self.pretrainOpts;
             dWold   = zeros(size(self.W));
             dbold   = zeros(size(self.b));
             dcold   = zeros(size(self.c));
-
+            
             for e = 1:opts.nEpochs
                 shuffle  = randperm(nObs);
-
+                
                 % Batch loop
                 for batchBeg = 1:opts.batchSz:nObs
                     bind  = shuffle(batchBeg : min(nObs, ...
                         batchBeg + opts.batchSz -1));
-                                        
+                    
                     % Gibbs sampling
                     [dW, db, dc] = self.cd(X(:,bind));
                     
                     % Weight decay
-                    if isfield(opts, 'wPenalty') && e > opts.wDecayDelay
-                        dW = dW + opts.wPenalty * self.W;
-                        db = db + opts.wPenalty * self.b;
-                        dc = dc + opts.wPenalty * self.c;
+                    if isfield(opts, 'wPenalty')
+                        dW = dW - opts.wPenalty * sign(self.W);
+                        db = db - opts.wPenalty * sign(self.b);
+                        dc = dc - opts.wPenalty * sign(self.c);
                     end
                     
                     % Momentum
@@ -185,9 +186,8 @@ classdef RELURBM < handle & AbstractNet
             end
         end
         
-        % Methods
-        % *************************************************************
-   
+        % Methods *************************************************************
+        
         function [dW, db, dc] = cd(self, X)
             % CD Contrastive divergence (Hinton's CD(k))
             %   [dW, db, dc, act] = cd(self, X) returns the gradients of
@@ -197,18 +197,29 @@ classdef RELURBM < handle & AbstractNet
             opts = self.pretrainOpts;
             
             nObs = size(X, 2);
+            
+            % Forward pass
             vis0 = X;
-            act  = bsxfun(@plus, (vis0' * self.W)', self.c);
+            
+            if opts.dropVis > 0 % Visible units dropout
+                mask = rand(size(X)) < opts.dropVis;
+                X = X .* mask / (1 - opts.dropVis);
+            end
+            
+            act  = bsxfun(@plus, (X' * self.W)', self.c);
             hid0 = max(0, act);
-            hid  = max(0, act + randn(self.nHid, nObs) .* sqrt(act));
+            
+            % Gibbs sampling
+            hid  = max(0, act + randn(self.nHid, nObs) .* sqrt(1./(1+exp(-act))));
             act  = bsxfun(@plus, self.W * hid, self.b);
             if opts.dropout > 0
-                hmask = rand(size(act)) < opts.dropHid;
-                act = act .* hmask / (1 - opts.dropHid);
+                mask = rand(size(act)) < opts.dropHid;
+                act = act .* mask / (1 - opts.dropHid);
             end
             vis  = max(0, act);
             hid  = max(0, bsxfun(@plus, (vis' * self.W)', self.c));
             
+            % Contrastive divergence
             dW   = - (vis0 * hid0' - vis * hid') / nObs;
             if self.hasHidBias
                 dc   = - (sum(hid0, 2) - sum(hid, 2)) / nObs;

@@ -123,10 +123,6 @@ classdef CRBM < handle & AbstractNet
                         self.c = self.c - opts.lRate * opts.wDecayRate * self.c;
                     end
                     
-                    % Sparsity, TODO
-                    if isfield(opts, 'sparsity') && e > opts.wDecayDelay
-                    end
-                    
                     % Gradient Backup
                     dWold = dW;
                     dbold = db;

@@ -1,13 +1,10 @@
 classdef RBM < handle & AbstractNet
     % RBM Restricted Boltzmann Machine Model object
-    %   RBM implements (pre)training and computing for Restricted Boltzmann
-    %   Machines, a special category of energy-based models.
+    %   RBM implements AbstractNet for Restricted Boltzmann Machines with 
+    %   binary units on both visible and hidden units.
     %
-    %   Switching the classifier behaviour enables joint modeling of binary or
-    %   multinomial variables for classification.
-    %
-    %   Model regularizers include L2 and L1 (via subgradients) weight decay,
-    %   hidden unit sparsity (binary units only), and hidden unit dropout.
+    %   Pretraining regularization includes L2 and L1 weight decay, dropout and 
+    %   hidden units sparsity.
     %
     %   author:
     %   Nicolas Granger <nicolas.granger@telecom-sudparis.eu>

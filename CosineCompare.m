@@ -17,14 +17,13 @@ classdef CosineCompare < handle & AbstractNet
         end
         
         function [Y, A] = compute(~, X)
+            Y = 1 - sum(X{1} .* X{2}) ./ sqrt(sum(X{1} .^ 2) .* sum(X{2} .^2));
             if nargout > 1
-                A.prod  = X{1} .* X{2};
-                A.normX1 = sqrt(sum(X{1} .^ 2));
-                A.normX2 = sqrt(sum(X{2} .^ 2));
-                Y = sum(A.prod) ./ (A.normX1 .* A.normX2);
-            else
-                Y = sum(X{1} .* X{2}) ./ sqrt(sum(X{1} .^ 2) .* sum(X{2} .^2));
+                A.X2 = X{2};
+                A.X1 = X{1};
+                A.Y  = Y;
             end
+            
         end
         
         function [] = pretrain(~, ~)
@@ -32,10 +31,15 @@ classdef CosineCompare < handle & AbstractNet
         
         function [G, inErr] = backprop(~, A, outErr)
             G = [];
-            inErr = cell(2, 1);
-            common = bsxfun(@times, A.prod, outErr ./ (A.normX1 .* A.normX2));
-            inErr{1} = bsxfun(@rdivide, common, A.normX1 .^2);
-            inErr{2} = bsxfun(@rdivide, common, A.normX2 .^2);
+            inErr    = cell(2, 1);
+            normX1   = sum(A.X1 .^ 2);
+            normX2   = sum(A.X2 .^ 2);
+            inErr{1} = bsxfun(@times,  ...
+                bsxfun(@rdivide, A.X2, sqrt(normX1 .* normX2)) ...
+                    - bsxfun(@times, A.X1, A.Y ./ normX1), outErr);
+            inErr{2} = bsxfun(@times, ...
+                bsxfun(@rdivide, A.X1, sqrt(normX1 .* normX2)) ...
+                    - bsxfun(@times, A.X2, A.Y ./ normX2), outErr);
         end
         
         function [] = gradientupdate(~, ~)
