@@ -28,8 +28,8 @@ classdef RELURBM < handle & AbstractNet
             obj.nVis         = nVis;
             obj.nHid         = nHid;
             
-            if ~isfield(pretrainOpts, 'visDrop')
-                pretrainOpts.visDrop = 0;
+            if ~isfield(pretrainOpts, 'dropVis')
+                pretrainOpts.dropVis = 0;
             end
             if ~isfield(pretrainOpts, 'dropout')
                 pretrainOpts.dropout = 0;
@@ -44,14 +44,15 @@ classdef RELURBM < handle & AbstractNet
             end
             obj.trainOpts    = trainOpts;
             
-            if ~isempty(varargin) && varargin{1} == false
-                obj.hasHidBias = false;
-            end
-            
             % Initializing weights
             obj.W = abs(randn(nVis, nHid)/(2*nVis));
-            obj.b = ones(nVis, 1) * 1;
-            obj.c = ones(nHid, 1) * 1;
+            obj.b = ones(nVis, 1) * 1/(20*nVis);
+            obj.c = ones(nHid, 1) * 1/(20*nVis);
+            
+            if ~isempty(varargin) && varargin{1} == false
+                obj.hasHidBias = false;
+                obj.c = 0;
+            end
         end
         
         % AbstractNet implementation ******************************************
@@ -92,9 +93,9 @@ classdef RELURBM < handle & AbstractNet
                     
                     % Weight decay
                     if isfield(opts, 'wPenalty')
-                        dW = dW - opts.wPenalty * sign(self.W);
-                        db = db - opts.wPenalty * sign(self.b);
-                        dc = dc - opts.wPenalty * sign(self.c);
+                        dW = dW + opts.wPenalty * sign(self.W);
+                        db = db + opts.wPenalty * sign(self.b);
+                        dc = dc + opts.wPenalty * sign(self.c);
                     end
                     
                     % Momentum
@@ -107,8 +108,6 @@ classdef RELURBM < handle & AbstractNet
                     self.b = self.b - opts.lRate * db;
                     if self.hasHidBias
                         self.c = self.c - opts.lRate * dc;
-                    else
-                        dc = zeros(self.nHid, 1);
                     end
                     
                     % Save gradient
@@ -213,20 +212,20 @@ classdef RELURBM < handle & AbstractNet
             hid  = max(0, act + randn(self.nHid, nObs) .* sqrt(1./(1+exp(-act))));
             act  = bsxfun(@plus, self.W * hid, self.b);
             if opts.dropout > 0
-                mask = rand(size(act)) < opts.dropHid;
-                act = act .* mask / (1 - opts.dropHid);
+                mask = rand(size(act)) < opts.dropout;
+                act = act .* mask / (1 - opts.dropout);
             end
             vis  = max(0, act);
             hid  = max(0, bsxfun(@plus, (vis' * self.W)', self.c));
             
             % Contrastive divergence
-            dW   = - (vis0 * hid0' - vis * hid') / nObs;
+            dW = (vis0 * hid0' - vis * hid') / nObs;
             if self.hasHidBias
-                dc   = - (sum(hid0, 2) - sum(hid, 2)) / nObs;
+                dc = (sum(hid0, 2) - sum(hid, 2)) / nObs;
             else
-                dc   = zeros(self.nHid, 1);
+                dc = zeros(self.nHid, 1);
             end
-            db   = - (sum(vis0, 2) - sum(vis, 2)) / nObs;
+            db = (sum(vis0, 2) - sum(vis, 2)) / nObs;
         end % cd(self, X)
         
     end % methods
