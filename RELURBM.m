@@ -45,7 +45,7 @@ classdef RELURBM < handle & AbstractNet
             obj.trainOpts    = trainOpts;
             
             % Initializing weights
-            obj.W = abs(randn(nVis, nHid)/(2*nVis));
+            obj.W = randn(nVis, nHid)/(2*nVis);
             obj.b = ones(nVis, 1) * 1/(20*nVis);
             obj.c = ones(nHid, 1) * 1/(20*nVis);
             
@@ -124,7 +124,8 @@ classdef RELURBM < handle & AbstractNet
                     R = max(0, bsxfun(@plus, self.W * R, self.b));
                     % Mean square reconstruction error
                     msre = mean(sqrt(mean((R - X) .^2)), 2);
-                    fprintf('%03d , msre = %f\n', e, msre);
+                    me   = mean(mean(R - X));
+                    fprintf('%03d , msre = %f, me = %f\n', e, msre, me);
                 end
             end
         end
@@ -201,31 +202,31 @@ classdef RELURBM < handle & AbstractNet
             vis0 = X;
             
             if opts.dropVis > 0 % Visible units dropout
-                mask = rand(size(X)) < opts.dropVis;
-                X = X .* mask / (1 - opts.dropVis);
+                mask = rand(self.nVis, 1) < opts.dropVis;
+                X = bsxfun(@times, X, mask) / (1 - opts.dropVis);
             end
             
             act  = bsxfun(@plus, (X' * self.W)', self.c);
             hid0 = max(0, act);
             
             % Gibbs sampling
-            hid  = max(0, act + randn(self.nHid, nObs) .* sqrt(1./(1+exp(-act))));
-            act  = bsxfun(@plus, self.W * hid, self.b);
+            hid  = max(0, act);% + randn(self.nHid, nObs) .* sqrt(1./(1+exp(-act))));
             if opts.dropout > 0
-                mask = rand(size(act)) < opts.dropout;
-                act = act .* mask / (1 - opts.dropout);
+                mask = rand(self.nHid, 1) < opts.dropout;
+                hid = bsxfun(@times, hid, mask) / (1 - opts.dropout);
             end
+            act  = bsxfun(@plus, self.W * hid, self.b);
             vis  = max(0, act);
             hid  = max(0, bsxfun(@plus, (vis' * self.W)', self.c));
             
             % Contrastive divergence
-            dW = (vis0 * hid0' - vis * hid') / nObs;
+            dW = - (vis0 * hid0' - vis * hid') / nObs;
             if self.hasHidBias
-                dc = (sum(hid0, 2) - sum(hid, 2)) / nObs;
+                dc = - (sum(hid0, 2) - sum(hid, 2)) / nObs;
             else
                 dc = zeros(self.nHid, 1);
             end
-            db = (sum(vis0, 2) - sum(vis, 2)) / nObs;
+            db = - (sum(vis0, 2) - sum(vis, 2)) / nObs;
         end % cd(self, X)
         
     end % methods
