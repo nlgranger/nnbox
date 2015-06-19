@@ -45,9 +45,10 @@ classdef RELURBM < handle & AbstractNet
             obj.trainOpts    = trainOpts;
             
             % Initializing weights
-            obj.W = randn(nVis, nHid)/(2*nVis);
-            obj.b = ones(nVis, 1) * 1/(20*nVis);
-            obj.c = ones(nHid, 1) * 1/(20*nVis);
+            obj.W = 10*randn(nVis, nHid)/(nVis);
+            obj.b = zeros(nVis, 1);
+%             obj.c = ones(nHid, 1) * 1/(nVis);
+            obj.c = zeros(nHid, 1);
             
             if ~isempty(varargin) && varargin{1} == false
                 obj.hasHidBias = false;
@@ -93,9 +94,9 @@ classdef RELURBM < handle & AbstractNet
                     
                     % Weight decay
                     if isfield(opts, 'wPenalty')
-                        dW = dW + opts.wPenalty * sign(self.W);
-                        db = db + opts.wPenalty * sign(self.b);
-                        dc = dc + opts.wPenalty * sign(self.c);
+                        dW = dW + opts.wPenalty * self.W;
+                        db = db + opts.wPenalty * self.b;
+                        dc = dc + opts.wPenalty * self.c;
                     end
                     
                     % Momentum
@@ -125,7 +126,7 @@ classdef RELURBM < handle & AbstractNet
                     % Mean square reconstruction error
                     msre = mean(sqrt(mean((R - X) .^2)), 2);
                     me   = mean(mean(R - X));
-                    fprintf('%03d , msre = %f, me = %f\n', e, msre, me);
+                    fprintf('%03d , msre = %g, me = %g\n', e, msre, me);
                 end
             end
         end
