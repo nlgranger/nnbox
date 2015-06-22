@@ -156,7 +156,9 @@ classdef RELURBM < handle & AbstractNet
             opts = self.trainOpts;
             % Gradient update
             self.W = self.W - opts.lRate * G.dW;
-            self.c = self.c - opts.lRate * G.dc;
+            if self.hasHidBias
+                self.c = self.c - opts.lRate * G.dc;
+            end
             
             % Weight decay
             if opts.decayNorm == 2
