@@ -81,6 +81,8 @@ classdef RELURBM < handle & AbstractNet
             dbold   = zeros(size(self.b));
             dcold   = zeros(size(self.c));
             
+            ndrop   = 0;
+            
             for e = 1:opts.nEpochs
                 shuffle  = randperm(nObs);
                 
@@ -117,6 +119,26 @@ classdef RELURBM < handle & AbstractNet
                     dcold = dc;
                 end
                 
+                % Feature selection
+                if isfield(opts, 'selectivity') ...
+                        && mod(e, opts.selectivity) == 0  ...
+                        && e > opts.selectAfter ...
+                        && e < opts.nEpochs - opts.selectAfter
+                    Y = self.compute(X);
+                    drop = self.selectuseless(Y);
+                    self.W(:, drop) = 10 * randn(self.nVis, sum(drop))/self.nVis;
+                    ndrop = ndrop + sum(drop);
+                    if ndrop > 0
+                        fprintf('(dropped %d useless)\n', sum(drop));
+                    end
+                    drop = self.selectredundant(Y, 100);
+                    self.W(:, drop) = 10 * randn(self.nVis, sum(drop))/self.nVis;
+                    ndrop = ndrop + sum(drop);
+                    if ndrop > 0
+                        fprintf('(dropped %d redundants)\n', sum(drop));
+                    end
+                end
+                
                 % Report
                 if isfield(opts, 'displayEvery') ...
                         && mod(e, opts.displayEvery) == 0
@@ -126,7 +148,9 @@ classdef RELURBM < handle & AbstractNet
                     % Mean square reconstruction error
                     msre = mean(sqrt(mean((R - X) .^2)), 2);
                     me   = mean(mean(R - X));
-                    fprintf('%03d , msre = %g, me = %g\n', e, msre, me);
+                    fprintf('%03d , msre = %g, me = %g, dropped = %d\n', ...
+                        e, msre, me, ndrop);
+                    ndrop = 0;
                 end
             end
         end
@@ -233,5 +257,22 @@ classdef RELURBM < handle & AbstractNet
         end % cd(self, X)
         
     end % methods
+    
+    methods(Static)
+        function drop = selectuseless(Y)
+            s = std(Y, 0, 2);
+            drop = s < max(mean(s) - 1.2*std(s), 1e-6);
+        end
+        
+        function drop = selectredundant(Y, n)
+            % original idea from http://stackoverflow.com/questions/15793172/efficiently-generating-unique-pairs-of-integers#answer-15795308
+            h = size(Y, 1);
+            r = randperm(h/2*(h-1), n);
+            q = floor(sqrt(8*(r-1) + 1)/2 + 1/2);
+            p = r - q.*(q-1)/2;
+            d = abs(cosine(Y(q,:), Y(p,:)));
+            drop = d > 0.95;
+        end
+    end
     
 end % classdef RBM
