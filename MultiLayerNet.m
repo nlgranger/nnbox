@@ -116,7 +116,7 @@ classdef MultiLayerNet < handle & AbstractNet
             end
         end % train(self, X, Y, opts)
         
-        % Methods ************************************************************
+        % Methods *************************************************************
         
         function [] = add(self, net)
             % addNetwork Add a new network layer on top
