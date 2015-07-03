@@ -53,15 +53,15 @@ classdef ReshapeNet < handle & AbstractNet
             else
                 X = reshape(X, 1, numel(X)); % horizontal X
             end
-            extra  = size(X{1}, numel(self.inSz{1}) + 1); % number of samples
+            N = size(X{1}, numel(self.inSz{1}) + 1); % number of samples
             
             for g = 1:length(X) % one line for each sample
-                X{g} = reshape(X{g}, numel(X{g})/extra, extra)';
+                X{g} = reshape(X{g}, [], N)';
             end
             X = cell2mat(X);
-            Y = mat2cell(X, extra, cellfun(@prod, self.outSz))';
+            Y = mat2cell(X, N, cellfun(@prod, self.outSz))';
             for g = 1:length(self.outSz) % split output groups and reshape
-                Y{g} = reshape(Y{g}', [self.outSz{g} extra]);
+                Y{g} = reshape(Y{g}', [self.outSz{g} N]);
             end
             
             if length(Y) == 1
