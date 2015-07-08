@@ -30,9 +30,10 @@ classdef CNN < handle & AbstractNet
             obj.inSz      = inSz;
             obj.poolSz    = [];
             obj.trainOpts = trainOpts;
-            s             = 0.1;
-            obj.filters   = randn([filterSz inSz(3) nFilters], 'single') * s;
-            obj.b         = ones(nFilters, 1, 'single') * 0.1;
+            wRange        = 1/prod(filterSz) * inSz(3);
+            obj.filters   = rand([filterSz inSz(3) nFilters], 'single') ...
+                * wRange - wRange / 2;
+            obj.b         = ones(nFilters, 1, 'single') * wRange / 2;
             
             assert(mod(numel(varargin), 2) == 0, ...
                 'options should be ''option'', values pairs');
@@ -70,22 +71,36 @@ classdef CNN < handle & AbstractNet
         end
         
         function [Y, A] = compute(self, X)
-            options = {};
-            if ~isempty(self.stride)
-                options = {'Stride', self.stride};
+            assert(isa(X, 'single'), 'only single precision input supported');
+            
+            % Dropout
+            if nargout > 1 && isfield(self.trainOpts, 'dropout')
+                rate = self.trainOpts.dropout;
+                A.mask = rand(self.inSz) < rate;
+                X = bsxfun(@times, X, single(A.mask / (1-rate)));
             end
+            
+            % Convolution
             X = reshape(X, size(X, 1), size(X,2), self.nChannels, []);
-            if ~isempty(options)
-                Y = vl_nnconv(X, self.filters, self.b, options);
+            if ~isempty(self.stride)
+                Y = vl_nnconv(X, self.filters, self.b, 'Stride', self.stride);
             else
                 Y = vl_nnconv(X, self.filters, self.b);
             end
+            
+            % Max-pooling
             if ~isempty(self.poolSz)
                 if nargin > 1
                     A.Y = Y;
                 end
-                Y = max(0, vl_nnpool(Y, self.poolSz, 'Stride', self.poolSz, 'Method', 'max'));
+                Y = vl_nnpool(Y, self.poolSz, 'Stride', self.poolSz, ...
+                	'Method', 'max');
             end
+            
+            % Rectification
+            Y = max(0, Y);
+            
+            % Save values for backprop
             if nargin > 1
                 A.X = X;
             end
@@ -107,6 +122,9 @@ classdef CNN < handle & AbstractNet
             else
                 [inErr, G.dW, G.db] = vl_nnconv(A.X, self.filters, self.b, ...
                     outErr);
+            end
+            if isfield(self.trainOpts, 'dropout')
+                inErr = bsxfun(@times, inErr, A.mask);
             end
         end
         
