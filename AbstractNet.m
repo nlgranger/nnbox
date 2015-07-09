@@ -1,4 +1,4 @@
-classdef AbstractNet < handle
+classdef AbstractNet < handle & matlab.mixin.Copyable
     % Interface for general neural networks operations
     
     methods (Abstract)
