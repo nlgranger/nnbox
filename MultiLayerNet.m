@@ -124,7 +124,7 @@ classdef MultiLayerNet < handle & AbstractNet
             assert(isa(net, 'AbstractNet'));
             
             nbNets                    = length(self.nets) + 1;
-            self.nets{nbNets}         = net;
+            self.nets{nbNets}         = net.copy();
         end % add(self, net)
         
     end % methods

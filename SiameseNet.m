@@ -13,7 +13,7 @@ classdef SiameseNet < AbstractNet & handle
                 'Grouped input or output not supported');
             if n == 1, warning('CompareNet is useless with n = 1'); end
             obj.nNets = n;
-            obj.net = net;
+            obj.net = net.copy();
             obj.pretrainOpts.skip = false;
             
             if ~isempty(varargin) && strcmp(varargin{1}, 'skipPretrain')

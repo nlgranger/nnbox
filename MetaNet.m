@@ -82,7 +82,7 @@ classdef MetaNet < handle & AbstractNet
             assert(isa(net, 'AbstractNet'), 'net must implement AbstractNet');
             
             nbNets              = length(self.nets);
-            self.nets{nbNets+1} = net;
+            self.nets{nbNets+1} = net.copy();
         end % add(self, net)
         
     end % methods
