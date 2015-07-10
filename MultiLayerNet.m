@@ -129,5 +129,18 @@ classdef MultiLayerNet < handle & AbstractNet
         
     end % methods
     
+    methods(Access = protected)
+        
+        % Override copyElement method
+        function copy = copyElement(self)
+            copy = MultiLayerNet(self.trainOpts);
+            copy.nets = cell(size(self.nets));
+            for i = 1:numel(self.nets)
+                copy.nets{i} = self.nets{i}.copy();
+            end
+        end
+        
+    end
+    
 end % MultiLayerNet
 

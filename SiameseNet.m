@@ -76,5 +76,17 @@ classdef SiameseNet < AbstractNet & handle
         end
     end
     
+    % Methods **************************************************************** 
+    
+    methods(Access = protected)
+        
+        % Override copyElement method
+        function copy = copyElement(self)
+            copy = SiameseNet(self.net.copy(), self.nNets, ...
+                'skipPretrain', self.pretrainOpts.skip);
+        end
+        
+    end
+    
 end
 

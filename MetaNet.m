@@ -86,4 +86,19 @@ classdef MetaNet < handle & AbstractNet
         end % add(self, net)
         
     end % methods
+    
+    methods(Access = protected)
+        
+        % Override copyElement method
+        function copy = copyElement(self)
+            copy = Metanet();
+            % Make a deep copy of the .nets object
+            copy.nets = cell(size(self.nets));
+            for i = 1:numel(self.nets)
+                copy.nets{i} = copy(self.nets{i});
+            end
+        end
+        
+    end
+    
 end % MetaNet
