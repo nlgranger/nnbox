@@ -67,7 +67,15 @@ classdef RELURBM < handle & AbstractNet
         end
         
         function [Y, A] = compute(self, X)
-            Y = max(0, bsxfun(@plus, (X' * self.W)', self.c));
+            if isfield(self.trainOpts, 'dropout')
+                % Same mask for all samples?
+                A.mask = rand(self.nVis, 1) < self.trainOpts.dropout;
+                W = bsxfun(@times, self.W, ...
+                    A.mask ./ (1 - self.trainOpts.dropout));
+                Y = max(0, bsxfun(@plus, (X' * W)', self.c));
+            else
+                Y = max(0, bsxfun(@plus, (X' * self.W)', self.c));
+            end
             if nargout > 1
                 A.x = X;
                 A.ds = Y>0;
@@ -170,6 +178,9 @@ classdef RELURBM < handle & AbstractNet
             % Gradient computation
             delta  = outErr .* A.ds;
             G.dW   = A.x * delta' / nSamples;
+            if isfield(self.trainOpts, 'dropout')
+                G.dW = bsxfun(@times, G.dW, A.mask);
+            end
             G.dc   = mean(delta, 2);
             
             % Error backpropagation
