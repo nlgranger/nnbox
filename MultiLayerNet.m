@@ -1,9 +1,6 @@
 classdef MultiLayerNet < handle & AbstractNet
     % MultiLayerNet Stack of neural networks
     %   Stores stacked network with interconnected inputs and outputs
-    %   
-    %   examples:
-    %   TODO
     
     properties
         nets = {};
@@ -14,6 +11,12 @@ classdef MultiLayerNet < handle & AbstractNet
         % Constructor *********************************************************
         
         function obj = MultiLayerNet(trainOpts)
+        % mln = MULTILAYERNET(trainOpts) returns an empty multilayer neural 
+        % network. Layers can be pushed from the bottom using the add() method.
+        % trainOpts is a structure of supervized training settings:
+        %   skipBelow    -- training skips layers up to this value [optional]
+        %   displayEvery -- error cost value display rate
+        %   
             if ~isfield(trainOpts, 'skipBelow')
                 trainOpts.skipBelow = 0;
             end
@@ -86,7 +89,7 @@ classdef MultiLayerNet < handle & AbstractNet
                 shuffle = randperm(nSamples);
                 
                 for start = 1:opts.batchSz:nSamples % batch loop
-                    idx    = shuffle(start:min(start + opts.batchSz - 1, nSamples));
+                    idx = shuffle(start:min(start+opts.batchSz-1, nSamples));
                     if iscell(X)
                         batchX = cell(length(X), 1);
                         for g = 1:length(X)
@@ -119,9 +122,12 @@ classdef MultiLayerNet < handle & AbstractNet
         % Methods *************************************************************
         
         function [] = add(self, net)
-            % addNetwork Add a new network layer on top
-            %   addNetwork(net, pretrainOpts, trainOpts)
-            assert(isa(net, 'AbstractNet'));
+            % ADD Add a new network on top of the existing ones
+            %   [] = addNetwork(self, net) add net, an implementation of 
+            %   AbstractNet on top of the networks currently in self. Note that
+            %   the input size of net must match the current output size of 
+            %   the multilayer network.
+            assert(isa(net, 'AbstractNet'), 'net must implement AbstractNet');
             
             nbNets                    = length(self.nets) + 1;
             self.nets{nbNets}         = net.copy();

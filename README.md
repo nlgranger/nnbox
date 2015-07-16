@@ -1,17 +1,15 @@
-NNBox
-=====
+# NNBox
 
 NNBox is a Matlab &copy; toolbox for neural networks. Many other toolboxes are 
 already available for matlab and may either offer more models, a higher levels 
 of support, better optimization, or simply a bigger user community... This 
 toolboxes has been concieved with two main objectives:
-- Providing very clear and simple implementations of the neural networks 
-  models and architecture.
-- Providing a flexible architecture where building block can be arranged 
+- Providing very clear and simple implementations of some neural networks 
+  models and architectures.
+- Providing a flexible interface where building block can be arranged 
   together easily.
 
-Below is a list of other existing libraries which you may want to compare with 
-this one:
+Below is a list of other existing libraries:
 
 - [Matlab Neural Network toolbox](http://fr.mathworks.com/help/nnet/index.html)
 - [DeepLearnToolbox](https://github.com/rasmusbergpalm/DeepLearnToolbox) 
@@ -32,30 +30,27 @@ supported.
 
 Just add nnbox to your path:
 
-    ```matlab
-    addpath('nnbox');
-    ```
+```matlab
+addpath('nnbox');
+```
 
 CNN require the [MatConvNet](http://www.vlfeat.org/matconvnet/) library, follow 
 installation instruction and add the matlab interface to the path 
 
 ## Usage
 
-    ```matlab
+```matlab
+net = MultiLayerNet(struct('skipBelow', 1)); 
+% TODO
+```
     
-    net = MultiLayerNet(struct('skipBelow', 1)); 
-    
-    % TODO
-    
-    ```
-    
-    The documentation will soon be available.
+The documentation will soon be available.
 
 ## License
 
 The MIT License (MIT)
 
-Copyright (c) 2015 Nicolas Granger <nicolas.granger@telecom-sudparis.eu>
+Copyright (c) 2015 Nicolas Granger <nicolas.granger @ telecom-sudparis.eu>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of 
 this software and associated documentation files (the "Software"), to deal in 
