@@ -1,23 +1,25 @@
 classdef RELURBM < handle & AbstractNet
-    % RELURBM Restricted Boltzmann Machine model
-    %   RBM implements AbstractNet for Restricted Boltzmann Machines with
-    %   rectified linear units on both visible and hidden units.
+    % RELURBM Restricted Boltzmann Machine model with ReLU activation units
+    %   RELURBM implements AbstractNet for Restricted Boltzmann Machines
+    %   with rectified linear units on both visible and hidden units.
+    %   Unsupervized training relies on Hinton's Contrastive divergence
+    %   (CD1) while supervized training uses simple gradient update with
+    %   backpropagation.
     %
-    %   Pretraining regularization includes L2 and L1 weight decay, dropout
-    %   and hidden units sparsity.
+    %   Pretraining regularization includes L2 and L1 weight decay and dropout.
     %
     %   author: Nicolas Granger <nicolas.granger@telecom-sudparis.eu>
     
     properties
-        nVis;                  % # of visible units (dimensions)
-        nHid;                  % # of hidden units
-        W;                     % connection weights
-        b;                     % visible unit biases
-        c;                     % hidden unit biases
-        hasHidBias = true;
+        nVis;                    % # of visible units
+        nHid;                    % # of hidden units
+        W;                       % connection weights
+        b;                       % visible units bias
+        c;                       % hidden units bias        
+        pretrainOpts = struct(); % pretraining settings
+        trainOpts    = struct(); % supervized training settings
         
-        pretrainOpts = struct();
-        trainOpts    = struct();
+        hasHidBias = true;
     end % properties
     
     methods
@@ -25,6 +27,26 @@ classdef RELURBM < handle & AbstractNet
         % Constructor *********************************************************
         
         function obj = RELURBM(nVis, nHid, pretrainOpts, trainOpts, varargin)
+            % RELURBM Constructor for RELURBM
+            %   rbm = RELURBM(nVis, nHid, pretrainOpts, trainOpts)
+            %   returns an rbm with nVis visible and nHid output hidden
+            %   units.
+            %   pretrainOpts is a structure with pretraining setting:
+            %       lRate     -- learning rate
+            %       dropVis   -- visible units dropout rate [optional]
+            %       dropout   -- hidden units dropout rate [optional]
+            %       momentum  -- gradient momentum [optional]
+            %       decayNorm -- norm of the weight penalty (1 or 2) [optional]
+            %   Similarily, trainOpts has configuration for supervized
+            %   training:
+            %       lRate     -- learning rate
+            %       dropout   -- input units dropout rate [optional]
+            %       batchSz   -- mini batch size [optional]
+            %
+            %   rbm = RELURBM(nVis, nHid, pretrainOpts, trainOpts, false) 
+            %   creates an RBM without bias on hidden units.
+            
+            
             obj.nVis         = nVis;
             obj.nHid         = nHid;
             
@@ -47,7 +69,6 @@ classdef RELURBM < handle & AbstractNet
             % Initializing weights
             obj.W = 10*randn(nVis, nHid)/(nVis);
             obj.b = zeros(nVis, 1);
-%             obj.c = ones(nHid, 1) * 1/(nVis);
             obj.c = zeros(nHid, 1);
             
             if ~isempty(varargin) && varargin{1} == false
@@ -69,10 +90,10 @@ classdef RELURBM < handle & AbstractNet
         function [Y, A] = compute(self, X)
             if isfield(self.trainOpts, 'dropout')
                 % Same mask for all samples?
-                A.mask = rand(self.nVis, 1) < self.trainOpts.dropout;
-                W = bsxfun(@times, self.W, ...
+                A.mask  = rand(self.nVis, 1) < self.trainOpts.dropout;
+                Wmasked = bsxfun(@times, self.W, ...
                     A.mask ./ (1 - self.trainOpts.dropout));
-                Y = max(0, bsxfun(@plus, (X' * W)', self.c));
+                Y       = max(0, bsxfun(@plus, (X' * Wmasked)', self.c));
             else
                 Y = max(0, bsxfun(@plus, (X' * self.W)', self.c));
             end
@@ -276,7 +297,8 @@ classdef RELURBM < handle & AbstractNet
         end
         
         function drop = selectredundant(Y, n)
-            % original idea from http://stackoverflow.com/questions/15793172/efficiently-generating-unique-pairs-of-integers#answer-15795308
+            % original idea from http://stackoverflow.com/questions/15793172/
+            % efficiently-generating-unique-pairs-of-integers#answer-15795308
             h = size(Y, 1);
             r = randperm(h/2*(h-1), n);
             q = floor(sqrt(8*(r-1) + 1)/2 + 1/2);
