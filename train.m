@@ -16,32 +16,45 @@ function trained = train(net, costFn, X, Y, opts)
 
 assert(isa(net, 'AbstractNet'), ...
     'net should implement AbstractNet');
-assert(isnumeric(Y) || isboolean(Y), 'Only numeric output is supported');
+assert(isnumeric(Y) || islogical(Y), 'Only numeric output is supported');
 
-trained = net.copy();
 if iscell(X)
     nSamples = size(X{1}, ndims(X{1}));
+    XSz      = cell(numel(X), 1);
+    Xcol     = cell(numel(X), 1);
+    for i = 1:numel(X);
+        XSz{i}  = size(X{i});
+        Xcol{i} = reshape(X{i}, [], nSamples);
+    end
 else
     nSamples = size(X, ndims(X));
+    XSz      = size(X);
+    Xcol     = reshape(X, [], nSamples);
 end
+
+trained = net.copy();
+
 Ycol = reshape(Y, [], nSamples);
 YSz  = size(Y);
+
 
 for i = 1:opts.nIter
     shuffle = randperm(nSamples);
     
     for start = 1:opts.batchSz:nSamples % batch loop
         idx = shuffle(start:min(start+opts.batchSz-1, nSamples));
+        batchSz = numel(idx);
+        
         if iscell(X)
             batchX = cell(length(X), 1);
             for g = 1:length(X)
-                batchX{g} = X{g}(:,:, idx);
+                batchX{g} = reshape(Xcol{g}(:, idx), ...
+                    [XSz{g}(1:end-1) batchSz]);
             end
         else
-            batchX = X(:, :, idx);
+            batchX = reshape(Xcol(:, idx), [XSz(1:end-1) batchSz]);
         end
-        batchY = reshape(Ycol(:,idx), ...
-            [YSz(1:end-1), opts.batchSz]);
+        batchY = reshape(Ycol(:,idx), [YSz(1:end-1), batchSz]);
         
         [O, A] = trained.compute(batchX); % forward pass
         outGrad = costFn(O, batchY, 'gradient'); % L2 error derivative
@@ -51,7 +64,7 @@ for i = 1:opts.nIter
     
     % Report
     if isfield(opts, 'displayEvery') && mod(i, opts.displayEvery) == 0
-        MC = self.compute(net, X, Y) / nSamples;
+        MC = costFn(net.compute(X), Y);
         fprintf('%03d , mean quadratic cost : %f\n', i, MC);
     end
 end
