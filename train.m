@@ -9,10 +9,14 @@ function trained = train(net, costFn, X, Y, opts)
 %       - a flag 'gradient'
 %   and return the derivative of the cost function with respect to its input 
 %   variables.
+%   opts is a structure containing training settings:
+%      nIter        -- # of training epochs
+%      batchSz      -- # of samples by mini-batch [optional]
+%      displayEvery -- frequency of progress display [optional]
 
 assert(isa(net, 'AbstractNet'), ...
     'net should implement AbstractNet');
-assert(isnumeric(Y), 'Only numeric output is supported');
+assert(isnumeric(Y) || isboolean(Y), 'Only numeric output is supported');
 
 trained = net.copy();
 if iscell(X)

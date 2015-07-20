@@ -1,12 +1,13 @@
 function C = L2Cost(O, Y, varargin)
-assert(isnumeric(Y), 'Only numeric output is supported');
+assert(isnumeric(Y), 'Only numeric O and Y are supported');
 
+nSamples = size(O, ndims(O));
 if isempty(varargin)
-    C = sum(reshape((O - Y) .^ 2, [], 1));
+    C = mean(sum(reshape((O - Y) .^ 2, [], nSamples)));
 elseif strcmp(varargin{1}, 'each')
-    C = reshape((O - Y) .^ 2, [], 1);
+    C = sum(reshape((O - Y) .^ 2, [], nSamples));
 elseif strcmp(varargin{1}, 'gradient');
-    C = O - Y;
+    C = (O - Y) / nSamples;
 else
     error('Unrecognized optional argument');
 end
