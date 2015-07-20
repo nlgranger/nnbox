@@ -69,11 +69,6 @@ classdef SiameseNet < AbstractNet & handle
                 self.net.gradientupdate(G{c});
             end
         end
-        
-        function [] = train(~, ~, ~)
-            % TODO implement this
-            error('Not implemented');
-        end
     end
     
     % Methods **************************************************************** 

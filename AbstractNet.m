@@ -47,11 +47,6 @@ classdef AbstractNet < handle & matlab.mixin.Copyable
         % GRADIENTUPDATE(G) perform one gradient update using data returned 
         %    by the BACKPROP.
         
-        train(self, X, Y)
-        % TRAIN Perform supervized training on network
-        %   TRAIN(obj, X, Y) Optimizes the network using input sample X and  
-        %   the corresponding output labels Y.
-        
     end % methods (Abstract)
     
 end

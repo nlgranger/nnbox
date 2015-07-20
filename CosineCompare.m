@@ -48,9 +48,5 @@ classdef CosineCompare < handle & AbstractNet
             % Nothing to do
         end
         
-        function [] = train(~, ~)
-            error('There is nothing to train on a Cosine distance.')
-        end
-        
     end
 end

@@ -226,25 +226,6 @@ classdef RELURBM < handle & AbstractNet
             end
         end
         
-        function [] = train(self, X, Y)
-            nSamples = size(X, 2);
-            opts     = self.trainOpts;
-            
-            if ~isfield(opts, 'batchSz')
-                opts.batchSz = nSamples; % no batch is one batch
-            end
-            
-            for i = 1:opts.nIter
-                shuffle = randperm(nSamples);
-                for start = 1:opts.batchSz:nSamples
-                    batch = shuffle(start:min(start + opts.batchSz - 1, nSamples));
-                    [O, A] = self.compute(X(:,batch));
-                    E = O - Y(:, batch);
-                    self.gradientupdate(self.backprop(A, E));
-                end
-            end
-        end
-        
         % Methods *************************************************************
         
         function [dW, db, dc] = cd(self, X)

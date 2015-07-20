@@ -101,9 +101,5 @@ classdef ReshapeNet < handle & AbstractNet
             % Nothing to update
         end
         
-        function [] = train(~, ~, ~)
-            error('ReshapeNet has nothing to train');
-        end
-        
     end % methods
 end

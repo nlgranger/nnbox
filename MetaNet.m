@@ -69,11 +69,6 @@ classdef MetaNet < handle & AbstractNet
             end
         end
         
-        function train(~, ~)
-            % TODO: implement this
-            error('Not implemented');
-        end
-        
         % Methods *************************************************************
         
         function [] = add(self, net)

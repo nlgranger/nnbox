@@ -146,10 +146,6 @@ classdef CNN < handle & AbstractNet
                 self.b = self.b - opts.lRate * opts.decayRate * sign(self.b);
             end
         end
-        
-        function [] = train(~, ~, ~)
-            error('Training is not implemented yet');
-        end
     end
     
 end
