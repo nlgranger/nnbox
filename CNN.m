@@ -30,10 +30,10 @@ classdef CNN < handle & AbstractNet
             obj.inSz      = inSz;
             obj.poolSz    = [];
             obj.trainOpts = trainOpts;
-            wRange        = 1/prod(filterSz) * inSz(3);
+            wRange        = 1/sqrt(prod(filterSz) * inSz(3));
             obj.filters   = rand([filterSz inSz(3) nFilters], 'single') ...
                 * wRange - wRange / 2;
-            obj.b         = ones(nFilters, 1, 'single') * wRange / 2;
+            obj.b         = zeros(nFilters, 1, 'single') * wRange / 2;
             
             assert(mod(numel(varargin), 2) == 0, ...
                 'options should be ''option'', values pairs');

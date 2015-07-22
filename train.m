@@ -65,7 +65,7 @@ for i = 1:opts.nIter
     % Report
     if isfield(opts, 'displayEvery') && mod(i, opts.displayEvery) == 0
         MC = costFn(net.compute(X), Y);
-        fprintf('%03d , mean quadratic cost : %f\n', i, MC);
+        fprintf('%03d , Error cost : %1.3e\n', i, MC);
     end
 end
 end

@@ -67,7 +67,7 @@ classdef RELURBM < handle & AbstractNet
             obj.trainOpts    = trainOpts;
             
             % Initializing weights
-            obj.W = 10*randn(nVis, nHid)/(nVis);
+            obj.W = randn(nVis, nHid) / sqrt(nVis);
             obj.b = zeros(nVis, 1);
             obj.c = zeros(nHid, 1);
             
