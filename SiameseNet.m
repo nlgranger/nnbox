@@ -77,8 +77,11 @@ classdef SiameseNet < AbstractNet & handle
         
         % Override copyElement method
         function copy = copyElement(self)
-            copy = SiameseNet(self.net.copy(), self.nNets, ...
-                'skipPretrain', self.pretrainOpts.skip);
+            if self.pretrainOpts.skip
+                copy = SiameseNet(self.net.copy(), self.nNets, 'skipPretrain');
+            else
+                copy = SiameseNet(self.net.copy(), self.nNets);
+            end
         end
         
     end

@@ -40,8 +40,10 @@ classdef MultiLayerNet < handle & AbstractNet
         end % compute(X)
         
         function [] = pretrain(self, X)
-            for o = self.frozenBelow + 1:length(self.nets)
-                self.nets{o}.pretrain(X);
+            for o = 1:length(self.nets)
+                if o > self.frozenBelow
+                    self.nets{o}.pretrain(X);    
+                end
                 X = self.nets{o}.compute(X);
             end
         end
@@ -50,12 +52,14 @@ classdef MultiLayerNet < handle & AbstractNet
             G     = cell(length(self.nets), 1);
             inErr = [];
             % Backprop and compute gradient
-            for l = length(self.nets):-1:self.frozenBelow + 1
+            for l = length(self.nets):-1:self.frozenBelow + 2
                 [G{l}, outErr] = self.nets{l}.backprop(A{l}, outErr);
             end
-            if nargout == 2
-                % Backprop through frozen layers
-                for l = self.frozenBelow:-1:1
+            bottom = self.frozenBelow + 1;
+            G{bottom} = self.nets{bottom}.backprop(A{bottom}, outErr);
+            
+            if nargout == 2 % Backprop through frozen layers anyways
+                for l = self.frozenBelow + 1:-1:1
                     [~, outErr] = self.nets{l}.backprop(A{l}, outErr);
                 end
                 inErr = outErr;
