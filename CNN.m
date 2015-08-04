@@ -31,8 +31,8 @@ classdef CNN < handle & AbstractNet
             obj.poolSz    = [];
             obj.trainOpts = trainOpts;
             wRange        = 1/sqrt(prod(filterSz) * inSz(3));
-            obj.filters   = rand([filterSz inSz(3) nFilters], 'single') ...
-                * wRange - wRange / 2;
+            obj.filters   = ...
+                rand([filterSz inSz(3) nFilters], 'single') * wRange;
             obj.b         = ones(nFilters, 1, 'single') * wRange / 2;
             
             assert(mod(numel(varargin), 2) == 0, ...
@@ -73,19 +73,20 @@ classdef CNN < handle & AbstractNet
         function [Y, A] = compute(self, X)
             assert(isa(X, 'single'), 'only single precision input supported');
             
-            % Dropout
-            if nargout > 1 && isfield(self.trainOpts, 'dropout')
-                rate = self.trainOpts.dropout;
-                A.mask = rand(self.inSz) > rate;
-                X = bsxfun(@times, X, single(A.mask / (1-rate)));
-            end
-            
             % Convolution
             X = reshape(X, size(X, 1), size(X,2), self.nChannels, []);
             if ~isempty(self.stride)
                 Y = vl_nnconv(X, self.filters, self.b, 'Stride', self.stride);
             else
                 Y = vl_nnconv(X, self.filters, self.b);
+            end
+            
+            % Dropout
+            if nargout > 1 && isfield(self.trainOpts, 'dropout')
+                rate = self.trainOpts.dropout;
+                A.mask = rand([self.inSz(1:2) - self.fSz(1:2) + 1, ...
+                               self.nFilters]) > rate;
+                Y = bsxfun(@times, Y, single(A.mask / (1-rate)));
             end
             
             % Max-pooling
@@ -112,10 +113,18 @@ classdef CNN < handle & AbstractNet
         end
         
         function [G, inErr] = backprop(self, A, outErr)
-            if ~isempty(self.poolSz) % Unpool
+            % Unpool and rectification derivation
+            if ~isempty(self.poolSz)
                 outErr = vl_nnpool(A.Y, self.poolSz, outErr, ...
-                    'Stride', self.poolSz, 'Method', 'max') .* (A.Y > 0);
+                    'Stride', self.poolSz) .* (A.Y > 0);
             end
+            
+            % Dropout
+            if isfield(self.trainOpts, 'dropout')
+                outErr = bsxfun(@times, outErr, A.mask);
+            end
+            
+            % Backprop
             if ~isempty(self.stride)
                 [inErr, G.dW, G.db] = vl_nnconv(A.X, self.filters, self.b, ...
                     outErr, 'Stride', self.stride);
@@ -123,18 +132,15 @@ classdef CNN < handle & AbstractNet
                 [inErr, G.dW, G.db] = vl_nnconv(A.X, self.filters, self.b, ...
                     outErr);
             end
-            if isfield(self.trainOpts, 'dropout')
-                inErr = bsxfun(@times, inErr, A.mask);
-            end
         end
         
         function [] = gradientupdate(self, G)
             opts = self.trainOpts;
             
             % Gradient update
-            self.filters = self.filters - opts.lRate * G.dW;
+            self.filters = self.filters + opts.lRate * G.dW;
             if ~isempty(self.b)
-                self.b = self.b - opts.lRate * G.db;
+                self.b = self.b + opts.lRate * G.db;
             end
             
             % Weight decay
