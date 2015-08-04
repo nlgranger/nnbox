@@ -66,9 +66,9 @@ classdef RELURBM < handle & AbstractNet
             obj.trainOpts    = trainOpts;
             
             % Initializing weights
-            obj.W = randn(nVis, nHid) / sqrt(nVis);
-            obj.b = abs(randn(nVis, 1)) / sqrt(nHid);
-            obj.c = abs(randn(nHid, 1)) / sqrt(nVis);
+            obj.W = randn(nVis, nHid) / (nVis);
+            obj.b = abs(randn(nVis, 1)) / (nHid);
+            obj.c = abs(randn(nHid, 1)) / (nVis);
             
             if ~isempty(varargin) && varargin{1} == false
                 obj.hasHidBias = false;
@@ -154,18 +154,21 @@ classdef RELURBM < handle & AbstractNet
                     Y = self.compute(X);
                     drop = self.selectuseless(Y);
                     self.W(:, drop) = ...
-                        randn(self.nVis, sum(drop)) / sqrt(self.nVis);
-                    self.c(drop) = ...
-                        randn(sum(drop)) / sqrt(self.nVis);
+                        randn(self.nVis, sum(drop)) / self.nVis;
+                    self.b(drop) = ...
+                        abs(randn(sum(drop), 1) / self.nVis);
                     ndrop = ndrop + sum(drop);
-                    if ndrop > 0
+                    if sum(drop) > 0
                         fprintf('(dropped %d useless)\n', sum(drop));
                     end
-                    drop = self.selectredundant(Y, 100);
-                    self.W(:, drop) = 10 * randn(self.nVis, sum(drop))/self.nVis;
-                    ndrop = ndrop + sum(drop);
-                    if ndrop > 0
-                        fprintf('(dropped %d redundants)\n', sum(drop));
+                    drop = self.selectredundant(Y, 200);
+                    self.W(:, drop) = ...
+                        randn(self.nVis, numel(drop)) / self.nVis;
+                    self.b(drop) = ...
+                        abs(randn(numel(drop), 1) / self.nVis);
+                    ndrop = ndrop + numel(drop);
+                    if numel(drop) > 0
+                        fprintf('(dropped %d redundants)\n', numel(drop));
                     end
                 end
                 
@@ -278,7 +281,7 @@ classdef RELURBM < handle & AbstractNet
     methods(Static)
         function drop = selectuseless(Y)
             s = std(Y, 0, 2);
-            drop = s < max(mean(s) - 1.2*std(s), 1e-6);
+            drop = s < 0.5*sqrt(1/size(Y, 2));
         end
         
         function drop = selectredundant(Y, n)
@@ -288,8 +291,11 @@ classdef RELURBM < handle & AbstractNet
             r = randperm(h/2*(h-1), n);
             q = floor(sqrt(8*(r-1) + 1)/2 + 1/2);
             p = r - q.*(q-1)/2;
-            d = abs(cosine(Y(q,:), Y(p,:)));
-            drop = d > 0.95;
+            s = (p ~= q);
+            p = p(s);
+            q = q(s);
+            d = sum(Y(q,:) .* Y(p,:), 2) ./ sqrt(sum(Y(q,:).^2, 2) .* sum(Y(p,:).^2, 2));
+            drop = q(abs(d) > 0.95);
         end
     end
     
