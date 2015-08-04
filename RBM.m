@@ -32,18 +32,18 @@ classdef RBM < handle & AbstractNet
             %   in the following fields:
             %       lRate       -- learning rate
             %       batchSz     -- # of samples per batch
-            %       momentum    -- gradient momentum (defau
+            %       momentum    -- gradient momentum
             %       sampleVis   -- sample visible units for GS (default:
             %                      false)
             %       sampleHid   -- sample hidden units for GS (default:
             %                      true)
             %       nGS         -- # GS iterations for CD(k)
-            %       wPenalty    -- weight penalty (optional)
-            %       wDecayDelay -- first epoch with weight decay (optional)
-            %       dropHid     -- hidden units dropout rate (optional)
-            %       dropVis     -- hidden units dropout rate (optional)
-            %       sparsity    -- sparseness objective (optional)
-            %       sparseGain  -- learning rate gain for sparsity (optional)
+            %       wPenalty    -- weight penalty [optional]
+            %       wDecayDelay -- first epoch with weight decay [optional]
+            %       dropHid     -- hidden units dropout rate [optional]
+            %       dropVis     -- hidden units dropout rate [optional]
+            %       sparsity    -- sparseness objective [optional]
+            %       sparseGain  -- learning rate gain for sparsity [optional]
             %
             %   Similary, training Opts support the following fields:
             %       lRate       -- learning rate
@@ -135,6 +135,7 @@ classdef RBM < handle & AbstractNet
                     if isfield(opts, 'sparsity') && e > opts.wDecayDelay
                         act = .9 * act + .1 * mean(hid, 2);
                     end
+                    
                     % Hidden layer selectivity
                     if isfield(opts, 'selectivity') && e > opts.wDecayDelay
                         err = mean(hid, 1) - opts.selectivity;
