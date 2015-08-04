@@ -2,7 +2,7 @@ classdef RELURBM < handle & AbstractNet
     % RELURBM Restricted Boltzmann Machine model with ReLU activation units
     %   RELURBM implements AbstractNet for Restricted Boltzmann Machines
     %   with rectified linear units on both visible and hidden units.
-    %   Unsupervized training relies on Hinton's Contrastive divergence
+    %   Unsupervized training relies on Hinton's Contrastive Divergence
     %   (CD1) while supervized training uses simple gradient update with
     %   backpropagation.
     %
@@ -41,7 +41,6 @@ classdef RELURBM < handle & AbstractNet
             %   training:
             %       lRate     -- learning rate
             %       dropout   -- input units dropout rate [optional]
-            %       batchSz   -- mini batch size [optional]
             %
             %   rbm = RELURBM(nVis, nHid, pretrainOpts, trainOpts, false) 
             %   creates an RBM without bias on hidden units.
@@ -69,7 +68,7 @@ classdef RELURBM < handle & AbstractNet
             % Initializing weights
             obj.W = randn(nVis, nHid) / sqrt(nVis);
             obj.b = zeros(nVis, 1);
-            obj.c = zeros(nHid, 1);
+            obj.c = abs(.5 * randn(nHid, 1) / sqrt(nVis));
             
             if ~isempty(varargin) && varargin{1} == false
                 obj.hasHidBias = false;
@@ -90,7 +89,7 @@ classdef RELURBM < handle & AbstractNet
         function [Y, A] = compute(self, X)
             if isfield(self.trainOpts, 'dropout')
                 % Same mask for all samples?
-                A.mask  = rand(self.nVis, 1) < self.trainOpts.dropout;
+                A.mask  = rand(self.nVis, 1) > self.trainOpts.dropout;
                 Wmasked = bsxfun(@times, self.W, ...
                     A.mask ./ (1 - self.trainOpts.dropout));
                 Y       = max(0, bsxfun(@plus, (X' * Wmasked)', self.c));
@@ -98,7 +97,7 @@ classdef RELURBM < handle & AbstractNet
                 Y = max(0, bsxfun(@plus, (X' * self.W)', self.c));
             end
             if nargout > 1
-                A.x = X;
+                A.x  = X;
                 A.ds = Y>0;
             end
         end
@@ -175,7 +174,7 @@ classdef RELURBM < handle & AbstractNet
                     R = self.compute(X);
                     R = max(0, bsxfun(@plus, self.W * R, self.b));
                     % Mean square reconstruction error
-                    msre = mean(sqrt(mean((R - X) .^2)), 2);
+                    msre = mean(mean((R - X) .^2), 2);
                     me   = mean(mean(R - X));
                     fprintf('%03d , msre = %g, me = %g, dropped = %d\n', ...
                         e, msre, me, ndrop);
@@ -199,13 +198,16 @@ classdef RELURBM < handle & AbstractNet
             % Gradient computation
             delta  = outErr .* A.ds;
             G.dW   = A.x * delta' / nSamples;
-            if isfield(self.trainOpts, 'dropout')
-                G.dW = bsxfun(@times, G.dW, A.mask);
-            end
             G.dc   = mean(delta, 2);
             
             % Error backpropagation
             inErr = self.W * delta;
+            
+            % Dropout
+            if isfield(self.trainOpts, 'dropout')
+                G.dW  = bsxfun(@times, G.dW, A.mask);
+                inErr = bsxfun(@times, inErr, A.mask);
+            end
         end
         
         function [] = gradientupdate(self, G)
@@ -252,7 +254,7 @@ classdef RELURBM < handle & AbstractNet
             % Gibbs sampling
             hid  = max(0, act);% + randn(self.nHid, nObs) .* sqrt(1./(1+exp(-act))));
             if opts.dropout > 0
-                mask = rand(self.nHid, 1) < opts.dropout;
+                mask = rand(self.nHid, 1) > opts.dropout;
                 hid = bsxfun(@times, hid, mask) / (1 - opts.dropout);
             end
             act  = bsxfun(@plus, self.W * hid, self.b);
