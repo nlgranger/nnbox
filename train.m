@@ -1,19 +1,21 @@
 function trained = train(net, costFn, X, Y, opts)
 % TRAIN trains a neural network
-%   trained = train(net, costFn, X, Y, opts) returns a trained copy of net.
+%	trained = train(net, costFn, X, Y, opts) returns a trained copy of net.
 %   The supervized training is done using X and Y the input and associated
 %   output samples under the cost function costFn. 
 %   A cost function should take three arguments: 
 %       - the network's output, 
 %       - the expected output samples
 %       - a flag 'gradient'
-%   and return the derivative of the cost function with respect to its input 
-%   variables.
+%   and return the derivative of the cost function with respect to its 
+%   input variables.
 %   opts is a structure containing training settings:
-%      nIter        -- # of training epochs
-%      batchSz      -- # of samples by mini-batch [optional]
-%      displayEvery -- frequency of progress display [optional]
-%      batchFn      -- returns mini-batches from the dataset
+%       nIter        -- # of training epochs
+%       batchSz      -- # of samples by mini-batch [optional]
+%       displayEvery -- frequency of progress display [optional]
+%       batchFn      -- returns mini-batches from the dataset
+%   train(net, costFn, X, Y, opts) takes net as a handle (reference) and
+%   trains in-place
 
 assert(isa(net, 'AbstractNet'), ...
     'net should implement AbstractNet');

@@ -37,7 +37,7 @@ classdef RELURBM < handle & AbstractNet
             %       dropout   -- hidden units dropout rate [optional]
             %       momentum  -- gradient momentum [optional]
             %       decayNorm -- norm of the weight penalty (1 or 2) [optional]
-            %   Similarily, trainOpts has configuration for supervized
+            %   Similarly, trainOpts has configuration for supervized
             %   training:
             %       lRate     -- learning rate
             %       dropout   -- input units dropout rate [optional]
@@ -67,8 +67,8 @@ classdef RELURBM < handle & AbstractNet
             
             % Initializing weights
             obj.W = randn(nVis, nHid) / sqrt(nVis);
-            obj.b = zeros(nVis, 1);
-            obj.c = abs(.5 * randn(nHid, 1) / sqrt(nVis));
+            obj.b = abs(randn(nVis, 1)) / sqrt(nHid);
+            obj.c = abs(randn(nHid, 1)) / sqrt(nVis);
             
             if ~isempty(varargin) && varargin{1} == false
                 obj.hasHidBias = false;
@@ -87,18 +87,17 @@ classdef RELURBM < handle & AbstractNet
         end
         
         function [Y, A] = compute(self, X)
-            if isfield(self.trainOpts, 'dropout')
-                % Same mask for all samples?
+            if nargout == 2 && isfield(self.trainOpts, 'dropout')
                 A.mask  = rand(self.nVis, 1) > self.trainOpts.dropout;
                 Wmasked = bsxfun(@times, self.W, ...
                     A.mask ./ (1 - self.trainOpts.dropout));
-                Y       = max(0, bsxfun(@plus, (X' * Wmasked)', self.c));
+                Y       = max(0, bsxfun(@plus, Wmasked' * X, self.c));
             else
-                Y = max(0, bsxfun(@plus, (X' * self.W)', self.c));
+                Y = max(0, bsxfun(@plus, self.W' * X, self.c));
             end
             if nargout > 1
                 A.x  = X;
-                A.ds = Y>0;
+                A.ds = Y > 0;
             end
         end
         
@@ -116,11 +115,11 @@ classdef RELURBM < handle & AbstractNet
                 
                 % Batch loop
                 for batchBeg = 1:opts.batchSz:nObs
-                    bind  = shuffle(batchBeg : min(nObs, ...
+                    bind = shuffle(batchBeg : min(nObs, ...
                         batchBeg + opts.batchSz -1));
                     
                     % Gibbs sampling
-                    [dW, db, dc] = self.cd(X(:,bind));
+                    [dW, db, dc] = self.cd(X(:, bind));
                     
                     % Weight decay
                     if isfield(opts, 'wPenalty')
@@ -154,7 +153,10 @@ classdef RELURBM < handle & AbstractNet
                         && e < opts.nEpochs - opts.selectAfter
                     Y = self.compute(X);
                     drop = self.selectuseless(Y);
-                    self.W(:, drop) = 10 * randn(self.nVis, sum(drop))/self.nVis;
+                    self.W(:, drop) = ...
+                        randn(self.nVis, sum(drop)) / sqrt(self.nVis);
+                    self.c(drop) = ...
+                        randn(sum(drop)) / sqrt(self.nVis);
                     ndrop = ndrop + sum(drop);
                     if ndrop > 0
                         fprintf('(dropped %d useless)\n', sum(drop));
@@ -193,11 +195,10 @@ classdef RELURBM < handle & AbstractNet
             %
             %   inErr  -- network output error derivative w.r.t. neurons
             %             outputs (not activation)
-            nSamples = size(outErr, 2);
             
             % Gradient computation
             delta  = outErr .* A.ds;
-            G.dW   = A.x * delta' / nSamples;
+            G.dW   = A.x * delta';
             G.dc   = mean(delta, 2);
             
             % Error backpropagation
@@ -244,31 +245,32 @@ classdef RELURBM < handle & AbstractNet
             vis0 = X;
             
             if opts.dropVis > 0 % Visible units dropout
-                mask = rand(self.nVis, 1) < opts.dropVis;
+                mask = rand(self.nVis, 1) > opts.dropVis;
                 X = bsxfun(@times, X, mask) / (1 - opts.dropVis);
             end
             
-            act  = bsxfun(@plus, (X' * self.W)', self.c);
+            act  = bsxfun(@plus, self.W' * X, self.c);
             hid0 = max(0, act);
             
             % Gibbs sampling
-            hid  = max(0, act);% + randn(self.nHid, nObs) .* sqrt(1./(1+exp(-act))));
+            hid  = max(0, act + randn(self.nHid, nObs) ...
+                .* sqrt(1./(1+exp(-act))));
             if opts.dropout > 0
                 mask = rand(self.nHid, 1) > opts.dropout;
                 hid = bsxfun(@times, hid, mask) / (1 - opts.dropout);
             end
             act  = bsxfun(@plus, self.W * hid, self.b);
             vis  = max(0, act);
-            hid  = max(0, bsxfun(@plus, (vis' * self.W)', self.c));
+            hid  = max(0, bsxfun(@plus, self.W' * vis, self.c));
             
             % Contrastive divergence
-            dW = - (vis0 * hid0' - vis * hid') / nObs;
+            dW = vis * hid' - vis0 * hid0';
             if self.hasHidBias
-                dc = - (sum(hid0, 2) - sum(hid, 2)) / nObs;
+                dc = sum(hid, 2) - sum(hid0, 2);
             else
                 dc = zeros(self.nHid, 1);
             end
-            db = - (sum(vis0, 2) - sum(vis, 2)) / nObs;
+            db = sum(vis, 2) - sum(vis0, 2);
         end % cd(self, X)
         
     end % methods
