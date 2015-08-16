@@ -66,9 +66,9 @@ classdef RELURBM < handle & AbstractNet
             obj.trainOpts    = trainOpts;
             
             % Initializing weights
-            obj.W = randn(nVis, nHid) / (nVis);
-            obj.b = abs(randn(nVis, 1)) / (nHid);
-            obj.c = abs(randn(nHid, 1)) / (nVis);
+            obj.W = randn(nVis, nHid) / nVis;
+            obj.b = ones(nVis, 1) / nHid;
+            obj.c = ones(nHid, 1) / nVis;
             
             if ~isempty(varargin) && varargin{1} == false
                 obj.hasHidBias = false;
@@ -102,13 +102,13 @@ classdef RELURBM < handle & AbstractNet
         end
         
         function [] = pretrain(self, X)
-            nObs = size(X, 2);
-            opts = self.pretrainOpts;
-            dWold   = zeros(size(self.W));
-            dbold   = zeros(size(self.b));
-            dcold   = zeros(size(self.c));
+            nObs  = size(X, 2);
+            opts  = self.pretrainOpts;
+            dWold = zeros(size(self.W));
+            dbold = zeros(size(self.b));
+            dcold = zeros(size(self.c));
             
-            ndrop   = 0;
+            ndrop = 0;
             
             for e = 1:opts.nEpochs
                 shuffle  = randperm(nObs);
@@ -161,7 +161,7 @@ classdef RELURBM < handle & AbstractNet
                     if sum(drop) > 0
                         fprintf('(dropped %d useless)\n', sum(drop));
                     end
-                    drop = self.selectredundant(Y, 200);
+                    drop = self.selectredundant(Y, 2 * self.nHid);
                     self.W(:, drop) = ...
                         randn(self.nVis, numel(drop)) / self.nVis;
                     self.b(drop) = ...
@@ -281,7 +281,7 @@ classdef RELURBM < handle & AbstractNet
     methods(Static)
         function drop = selectuseless(Y)
             s = std(Y, 0, 2);
-            drop = s < 0.5*sqrt(1/size(Y, 2));
+            drop = s < sqrt(1/size(Y, 2));
         end
         
         function drop = selectredundant(Y, n)

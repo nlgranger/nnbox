@@ -30,10 +30,10 @@ classdef CNN < handle & AbstractNet
             obj.inSz      = inSz;
             obj.poolSz    = [];
             obj.trainOpts = trainOpts;
-            wRange        = 1/sqrt(prod(filterSz) * inSz(3));
+            wRange        = .5 / sqrt(prod(filterSz) * inSz(3));
             obj.filters   = ...
                 rand([filterSz inSz(3) nFilters], 'single') * wRange;
-            obj.b         = ones(nFilters, 1, 'single') * wRange / 4;
+            obj.b         = .6 * ones(nFilters, 1, 'single') * wRange;
             
             assert(mod(numel(varargin), 2) == 0, ...
                 'options should be ''option'', values pairs');
@@ -138,9 +138,9 @@ classdef CNN < handle & AbstractNet
             opts = self.trainOpts;
             
             % Gradient update
-            self.filters = self.filters + opts.lRate * G.dW;
+            self.filters = self.filters - opts.lRate * G.dW;
             if ~isempty(self.b)
-                self.b = self.b + opts.lRate * G.db;
+                self.b = self.b - opts.lRate * G.db;
             end
             
             % Weight decay
