@@ -1,11 +1,13 @@
 classdef JaccardDistance < handle & AbstractNet
     properties
         inSize;
+        offset;
     end
     
     methods
-        function obj = JaccardDistance(inSize)
+        function obj = JaccardDistance(inSize, regularisation)
             obj.inSize = inSize;
+            obj.offset = regularisation;
         end
         
         function S = insize(self)
@@ -16,19 +18,20 @@ classdef JaccardDistance < handle & AbstractNet
             S = 1;
         end
         
-        function [Y, A] = compute(~, X)
+        function [Y, A] = compute(self, X)
             if nargout > 1
-                m    = sum(min(X{1}, X{2}), 1);
-                M    = sum(max(X{1}, X{2}), 1);
+                m    = sum(min(X{1}, X{2}), 1) + self.offset;
+                M    = sum(max(X{1}, X{2}), 1) + self.offset;
                 Y    = m ./ M;
                 t1   = 1 ./ M;
-                t2   = - Y .* t1;
+                t2   = - M .^ -2;
                 t3   = X{1} < X{2};
                 A    = {- bsxfun(@times, t3, t1) - bsxfun(@times, ~t3, t2), ...
                         - bsxfun(@times, ~t3, t1) - bsxfun(@times, t3, t2) };
                 Y = 1 - Y;
             else
-                Y = 1 - sum(min(X{1}, X{2}), 1) ./ sum(max(X{1}, X{2}), 1);
+                Y = 1 - sum(min(X{1}, X{2}) + self.offset, 1) ...
+                     ./ sum(max(X{1}, X{2}) + self.offset, 1);
             end
         end
         
