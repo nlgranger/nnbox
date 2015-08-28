@@ -67,8 +67,8 @@ classdef RELURBM < handle & AbstractNet
             
             % Initializing weights
             obj.W = randn(nVis, nHid) / nVis;
-            obj.b = ones(nVis, 1) / nHid;
-            obj.c = ones(nHid, 1) / nVis;
+            obj.b = ones(nVis, 1) / sqrt(nHid);
+            obj.c = 2 * ones(nHid, 1) / nVis;
             
             if ~isempty(varargin) && varargin{1} == false
                 obj.hasHidBias = false;
