@@ -20,8 +20,8 @@ classdef JaccardDistance < handle & AbstractNet
         
         function [Y, A] = compute(self, X)
             if nargout > 1
-                m    = sum(min(X{1}, X{2}), 1) + self.offset;
-                M    = sum(max(X{1}, X{2}), 1) + self.offset;
+                m    = sum(min(X{1}, X{2}) + self.offset, 1);
+                M    = sum(max(X{1}, X{2}) + self.offset, 1);
                 Y    = m ./ M;
                 t1   = 1 ./ M;
                 t2   = - M .^ -2;
