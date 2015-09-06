@@ -53,10 +53,26 @@ for i = 1:opts.nIter
     
     % Report
     if isfield(opts, 'displayEvery') && mod(i, opts.displayEvery) == 0
-        [batchX, batchY] = opts.batchFn(X, Y, inf, []);
-        O  = trained.compute(batchX);
-        MC = costFn(O, batchY);
-        fprintf('%03d , Error cost : %1.3e\n', i, MC);
+		if isfield(opts, 'batchFn')
+			E           = [];
+			S           = [];
+			moreBatches = true;
+			idx         = [];
+			while moreBatches
+				[batchX, batchY, idx] = ...
+					opts.batchFn(X, Y, opts.batchSz, idx);
+				nSamples    = size(batchY, ndims(batchY));
+				O           = trained.compute(batchX);
+				E           = [E costFn(O, batchY)];
+				S           = [S nSamples];
+				moreBatches = ~isempty(idx);
+			end
+			MC = sum(E .* S ./ sum(S));
+		else
+			O  = trained.compute(X);
+			MC = costFn(O, Y);
+		end
+		fprintf('%03d , Error cost : %1.3e\n', i, MC);
     end
 end
 end

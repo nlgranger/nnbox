@@ -1,17 +1,17 @@
 classdef CNN < handle & AbstractNet
     
     properties
-        nFilters;  % # of filters
-        nChannels; % # of channels
-        fSz;       % filters dimensions
-        stride;    % Stride
-        inSz;      % input image size
-        poolSz;    % pool size
+        nFilters;     % # of filters
+        nChannels;    % # of channels
+        fSz;          % filters dimensions
+        stride;       % Stride
+        inSz;         % input image size
+        poolSz;       % pool size
         
-        trainOpts; % training options
+        trainOpts;    % training options
         
-        filters;   % filters weights
-        b;         % biases
+        filters;      % filters weights
+        b;            % biases
     end
     
     methods
@@ -75,6 +75,12 @@ classdef CNN < handle & AbstractNet
             
             % Convolution
             X = reshape(X, size(X, 1), size(X,2), self.nChannels, []);
+
+            % Save values for backprop
+            if nargin > 1
+                A.X = X;
+            end
+            
             if ~isempty(self.stride)
                 Y = vl_nnconv(X, self.filters, self.b, 'Stride', self.stride);
             else
@@ -100,11 +106,6 @@ classdef CNN < handle & AbstractNet
             
             % Rectification
             Y = max(0, Y);
-            
-            % Save values for backprop
-            if nargin > 1
-                A.X = X;
-            end
         end
         
         function [] = pretrain(~, ~)
