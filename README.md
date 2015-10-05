@@ -6,10 +6,14 @@ of support, better optimization, or simply a bigger user community... This
 toolboxes has been concieved with two main objectives:
 - Providing very clear and simple implementations of some neural networks 
   models and architectures.
-- Providing a flexible interface where building block can be arranged 
+- Providing a flexible interface where building blocks can be arranged 
   together easily.
 
-Below is a list of other existing libraries:
+This library does not focus on completeness, because it rarely gives satisfying 
+results. Instead it tries to provide simple and flexible architectural 
+fundations to help you implement your own model quickly.
+
+FYI, here is a list of other existing libraries:
 
 - [Matlab Neural Network toolbox](http://fr.mathworks.com/help/nnet/index.html)
 - [DeepLearnToolbox](https://github.com/rasmusbergpalm/DeepLearnToolbox) 
@@ -28,44 +32,20 @@ supported.
 
 ## Installation
 
-Just add nnbox to your path:
+Just add nnbox subfolders to your path:
 
 ```matlab
-addpath('nnbox');
+addpath('nnbox/utils:nnbox/networks:nnbox/costfun:nnbox/distances');
 ```
 
-CNN require the [MatConvNet](http://www.vlfeat.org/matconvnet/) library, follow 
-installation instruction and add the matlab interface to the path 
+CNN implementation requires the [MatConvNet](http://www.vlfeat.org/matconvnet/) 
+library as a backend, follow installation instructions and add the matlab 
+bindings to the path.
 
-## Usage
+## Example
 
-```matlab
-net = MultiLayerNet(struct('skipBelow', 1)); 
-% TODO
-```
-    
-The documentation will soon be available.
+TODO
 
-## License
+## Documentation
 
-The MIT License (MIT)
-
-Copyright (c) 2015 Nicolas Granger <nicolas.granger @ telecom-sudparis.eu>
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of 
-this software and associated documentation files (the "Software"), to deal in 
-the Software without restriction, including without limitation the rights to 
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies 
-of the Software, and to permit persons to whom the Software is furnished to do 
-so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all 
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE 
-SOFTWARE.
+Refer to [DOCUMENTATION.md](DOCUMENTATION.md)
