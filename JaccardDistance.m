@@ -1,14 +1,33 @@
 classdef JaccardDistance < handle & AbstractNet
+    % L2Distance implements the Jaccard comparison between vectors as an
+    % AbstractNet
+    
+    % author  : Nicolas Granger <nicolas.granger@telecom-sudparis.eu>
+    % licence : MIT
+    
     properties
         inSize;
         offset;
     end
     
     methods
-        function obj = JaccardDistance(inSize, regularisation)
+        
+        % Constructor ------------------------------------------------------- %
+        
+        function obj = JaccardDistance(inSize, varargin)
+            % obj = JACCARDDISTANCE(S) returns an instance of JACCARDDISTANCE
+            % for input vectors of size S.
+            % obj = JACCARDDISTANCE(S, R) adds a regularization factor in
+            % the computation of the distance (see implementation details).
+            
             obj.inSize = inSize;
-            obj.offset = regularisation;
+            obj.offset = 0;
+            if ~isempty(varargin) && isnumeric(varargin{1})
+                obj.offset = varargin{1};
+            end
         end
+        
+        % AbstractNet implementation ---------------------------------------- %
         
         function S = insize(self)
             S = {self.inSize; self.inSize};

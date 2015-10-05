@@ -7,8 +7,9 @@ classdef RELURBM < handle & AbstractNet
     %   backpropagation.
     %
     %   Pretraining regularization includes L2 and L1 weight decay and dropout.
-    %
-    %   author: Nicolas Granger <nicolas.granger@telecom-sudparis.eu>
+    
+    % author  : Nicolas Granger <nicolas.granger@telecom-sudparis.eu>
+    % licence : MIT
     
     properties
         nVis;                    % # of visible units
@@ -24,7 +25,7 @@ classdef RELURBM < handle & AbstractNet
     
     methods
         
-        % Constructor *********************************************************
+        % Constructor ------------------------------------------------------- %
         
         function obj = RELURBM(nVis, nHid, pretrainOpts, trainOpts, varargin)
             % RELURBM Constructor for RELURBM
@@ -45,9 +46,8 @@ classdef RELURBM < handle & AbstractNet
             %   rbm = RELURBM(nVis, nHid, pretrainOpts, trainOpts, false) 
             %   creates an RBM without bias on hidden units.
             
-            
-            obj.nVis         = nVis;
-            obj.nHid         = nHid;
+            obj.nVis = nVis;
+            obj.nHid = nHid;
             
             if ~isfield(pretrainOpts, 'dropVis')
                 pretrainOpts.dropVis = 0;
@@ -63,7 +63,7 @@ classdef RELURBM < handle & AbstractNet
             if ~isfield(trainOpts, 'decayNorm')
                 trainOpts.decayNorm = -1;
             end
-            obj.trainOpts    = trainOpts;
+            obj.trainOpts = trainOpts;
             
             % Initializing weights
             obj.W = randn(nVis, nHid) / nVis;
@@ -76,7 +76,7 @@ classdef RELURBM < handle & AbstractNet
             end
         end
         
-        % AbstractNet implementation ******************************************
+        % AbstractNet implementation ---------------------------------------- %
         
         function S = insize(self)
             S = self.nVis;
@@ -188,17 +188,7 @@ classdef RELURBM < handle & AbstractNet
             end
         end
         
-        function [G, inErr] = backprop(self, A, outErr)
-            % backprop implementation of AbstractNet.backprop
-            %   inErr = backprop(self, A, outErr, opts)
-            %
-            %   A      -- forward pass data as return by compute outErr --
-            %   network output error derivative w.r.t. output
-            %             neurons stimulation
-            %
-            %   inErr  -- network output error derivative w.r.t. neurons
-            %             outputs (not activation)
-            
+        function [G, inErr] = backprop(self, A, outErr)            
             % Gradient computation
             delta  = outErr .* A.ds;
             G.dW   = A.x * delta';
@@ -232,7 +222,7 @@ classdef RELURBM < handle & AbstractNet
             end
         end
         
-        % Methods *************************************************************
+        % Methods ----------------------------------------------------------- %
         
         function [dW, db, dc] = cd(self, X)
             % CD Contrastive divergence (Hinton's CD(k))
@@ -279,12 +269,19 @@ classdef RELURBM < handle & AbstractNet
     end % methods
     
     methods(Static)
+        
+        % Empirical selection of neurons with low significance
         function drop = selectuseless(Y)
             s = std(Y, 0, 2);
             drop = s < sqrt(1/size(Y, 2));
         end
         
+        % Empirical selection of redundant neurons
         function drop = selectredundant(Y, n)
+            % drop = selectredundant(Y, n) returns a binary vectors of
+            % neurons which seem redundant (similar outputs). Comparison are
+            % run on n random pairs.
+            
             % original idea from http://stackoverflow.com/questions/15793172/
             % efficiently-generating-unique-pairs-of-integers#answer-15795308
             h = size(Y, 1);
@@ -294,7 +291,8 @@ classdef RELURBM < handle & AbstractNet
             s = (p ~= q);
             p = p(s);
             q = q(s);
-            d = sum(Y(q,:) .* Y(p,:), 2) ./ sqrt(sum(Y(q,:).^2, 2) .* sum(Y(p,:).^2, 2));
+            d = sum(Y(q,:) .* Y(p,:), 2) ...
+                ./ sqrt(sum(Y(q,:).^2, 2) .* sum(Y(p,:).^2, 2));
             drop = q(abs(d) > 0.95);
         end
     end

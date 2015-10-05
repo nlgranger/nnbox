@@ -1,13 +1,27 @@
 classdef L1Distance < handle & AbstractNet
+    % L1Distance implements the L1 comparison between vectors as an
+    % AbstractNet
+    
+    % author  : Nicolas Granger <nicolas.granger@telecom-sudparis.eu>
+    % licence : MIT
+    
     properties
         inSize;
     end
     
     methods
+        
+        % Constructor ------------------------------------------------------- %
+        
         function obj = L1Distance(inSize)
+            % obj = L1DISTANCE(inSize) returns an instance of L1DISTANCE for
+            % inputs of size inSize
+        
             assert(isnumeric(inSize), 'Only numerical input is supported');
             obj.inSize = inSize;
         end
+        
+        % AbstractNet implementation----------------------------------------- %
         
         function S = insize(self)
             S = {self.inSize; self.inSize};

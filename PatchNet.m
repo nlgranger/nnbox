@@ -1,4 +1,10 @@
 classdef PatchNet < handle & AbstractNet
+    % PATCHNET Overlapping patch extractor
+    %   Implementation of AbstractNet to extract overlapping patches from
+    %   2D inputs
+    
+    % author  : Nicolas Granger <nicolas.granger@telecom-sudparis.eu>
+    % licence : MIT
     
     properties
         inSz;    % 2D input size
@@ -9,16 +15,21 @@ classdef PatchNet < handle & AbstractNet
     
     methods
         
-        % Constructor *********************************************************
+        % Constructor ------------------------------------------------------- %
         
         function obj = PatchNet(inSz, patchSz, overlap)
+            % obj = PATCHNET([ih iw], [ph pw], [ovt ohz]) returns an
+            % instance of PATCHNET for inputs of size ih by iw which cuts
+            % patches of size ovt by ohz with ovt (resp. ovz) pixels of
+            % vertical (resp. horizontal) overlap.
+            
             obj.inSz   = inSz;
             obj.patchSz = patchSz;
             obj.overlap = overlap;
             obj.nPatches = floor((inSz - patchSz) ./ (patchSz - overlap)) + 1;
         end
         
-        % AbstractNet implementation ******************************************
+        % AbstractNet implementation ---------------------------------------- %
         
         function S = insize(self)
             S = self.inSz;
@@ -48,9 +59,7 @@ classdef PatchNet < handle & AbstractNet
         end
         
         function [G, inErr] = backprop(~, ~, ~)
-            G = [];
-            inErr = [];
-            % TODO: implement this
+            error('PatchNet backpropagation is not implemented');
         end
         
         function [] = gradientupdate(~, ~)
@@ -58,7 +67,7 @@ classdef PatchNet < handle & AbstractNet
         end
         
         function [] = train(~, ~, ~)
-            error('PatchNet has nothing to train.');
+            % Nothing to do
         end
         
     end % methods

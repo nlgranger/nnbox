@@ -1,14 +1,28 @@
-classdef L2Compare < handle & AbstractNet
+classdef L2Distance < handle & AbstractNet
+    % L2Distance implements the L2 comparison between vectors as an
+    % AbstractNet
+    
+    % author  : Nicolas Granger <nicolas.granger@telecom-sudparis.eu>
+    % licence : MIT
+    
     properties
         inSize;
     end
     
     methods
-        function obj = L2Compare(inSize)
+        
+        % Constructor ------------------------------------------------------- %
+        
+        function obj = L2Distance(inSize)
+            % obj = L2DISTANCE(inSize) returns an instance of L2DISTANCE for
+            % inputs of size inSize
+            
             assert(isnumeric(inSize), 'Only numerical input is supported');
             obj.inSize = inSize;
         end
         
+        % AbstractNet implementation----------------------------------------- %
+     
         function S = insize(self)
             S = {self.inSize; self.inSize};
         end

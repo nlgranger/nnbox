@@ -1,4 +1,13 @@
 function C = contrastiveLoss(O, Y, varargin)
+% A loss function inspired by : 
+% Chopra, S., Hadsell, R., & LeCun, Y. (2005, June). Learning a similarity
+% metric discriminatively, with application to face verification. In
+% Computer Vision and Pattern Recognition, 2005. CVPR 2005. IEEE Computer
+% Society Conference on (Vol. 1, pp. 539-546). IEEE.
+
+% author  : Nicolas Granger <nicolas.granger@telecom-sudparis.eu>
+% licence : MIT
+
 Q = 1.5;
 assert(isnumeric(O), 'Only numeric O is supported');
 assert(islogical(Y), 'Y must be a boolean array');

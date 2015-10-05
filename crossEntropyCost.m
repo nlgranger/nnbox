@@ -1,4 +1,9 @@
 function C = crossEntropyCost(O, Y, varargin)
+% The cross entropy cost function
+
+% author  : Nicolas Granger <nicolas.granger@telecom-sudparis.eu>
+% licence : MIT
+
 assert(isnumeric(O), 'Only numeric O is supported');
 assert(islogical(Y), 'Y must be a boolean array');
 

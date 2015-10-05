@@ -10,6 +10,8 @@ classdef CRBM < handle & AbstractNet
     %
     %   CRBM also features the possibility to use multiple filter which is
     %   equivalent to applying several CRBMS on the same input.
+    %
+    %   Note: This is a draft and it has not been tested nor reviewed.
     
     properties
         nFilters; % number of filters
@@ -28,7 +30,7 @@ classdef CRBM < handle & AbstractNet
     
     methods
         
-        % Constructor *********************************************************
+        % Constructor ------------------------------------------------------- %
 
         function obj = CRBM(inSz, nFilters, filterSz, poolSz, pretrainOpts, ...
             trainOpts)
@@ -66,7 +68,7 @@ classdef CRBM < handle & AbstractNet
             end
         end
         
-        % AbstractNet implementation ******************************************
+        % AbstractNet implementation ---------------------------------------- %
         
         function S = insize(self)
             S = self.inSz;
@@ -159,7 +161,7 @@ classdef CRBM < handle & AbstractNet
             end
         end % train(self, X, Y, opts)
         
-        % Methods *************************************************************
+        % Methods  ---------------------------------------------------------- %
         
         function H = vis2hid(self, X)
             nSamples = size(X, 3);
@@ -246,14 +248,18 @@ classdef CRBM < handle & AbstractNet
     end % methods
     
     methods(Static)
+        
+        % Sigmoïd activation function
         function H = activationFn(S)
             H = 1 ./ (1 + exp(-S));
         end
         
+        % Max-pooling subsampling function
         function p = poolFn(B)
             p = max(max(B));
         end
         
+        % Max-pooling subsampling function with inversion information
         function pi = poolWithIdxFn(B)
             [m, i1] = max(B.data);
             [m, i2] = max(m);

@@ -1,6 +1,9 @@
 classdef MultiLayerNet < handle & AbstractNet
-    % MultiLayerNet Stack of neural networks
-    %   Stores stacked network with interconnected inputs and outputs
+    % MULTILAYERNET Implements stacking of interconnected neural networks
+    % as an AbstractNet
+    
+    % author  : Nicolas Granger <nicolas.granger@telecom-sudparis.eu>
+    % licence : MIT
     
     properties
         nets = {};
@@ -9,7 +12,7 @@ classdef MultiLayerNet < handle & AbstractNet
     
     methods
         
-        % AbstractNet Implementation ******************************************
+        % AbstractNet implementation ---------------------------------------- %
         
         function S = insize(self)
             S = self.nets{1}.insize();
@@ -37,7 +40,7 @@ classdef MultiLayerNet < handle & AbstractNet
                 end
             end
             Y = X;
-        end % compute(X)
+        end
         
         function [] = pretrain(self, X)
             for o = 1:length(self.nets)
@@ -72,7 +75,7 @@ classdef MultiLayerNet < handle & AbstractNet
             end
         end
         
-        % Methods *************************************************************
+        % Methods ----------------------------------------------------------- %
         
         function [] = add(self, net)
             % ADD Stack an additional network on top
@@ -107,9 +110,12 @@ classdef MultiLayerNet < handle & AbstractNet
     
     methods(Access = protected)
         
+        % Copyable implementation ------------------------------------------- %
+        
         % Override copyElement method
         function copy = copyElement(self)
             copy = MultiLayerNet();
+            % Make a deep copy of self.nets
             copy.nets = cell(size(self.nets));
             for i = 1:numel(self.nets)
                 copy.nets{i} = self.nets{i}.copy();

@@ -1,4 +1,9 @@
 classdef CNN < handle & AbstractNet
+    % Implementation of AbstractNet for Convolutional Neural Networks
+    % (requires MatConvNet backend).
+    
+    % author  : Nicolas Granger <nicolas.granger@telecom-sudparis.eu>
+    % licence : MIT
     
     properties
         nFilters;     % # of filters
@@ -16,9 +21,28 @@ classdef CNN < handle & AbstractNet
     
     methods
         
-        % Constructor *********************************************************
+        % Constructor ------------------------------------------------------- %
         
         function obj = CNN(inSz, filterSz, nFilters, trainOpts, varargin)
+            % CNN Build a CNN instance
+            %   obj = CNN([ih iw], [fh fw], N, O) returns an instance of
+            %   CNN with N filters fh by fw large, accepting inputs of size
+            %   ih by iw. O is a structure with the following fields:
+            %     lRate     -- learning rate
+            %     decayNorm -- weight decay norm, 1 for L1, 2 for L2 [optional]
+            %     decayRate -- coefficient on weight decay penalty [optional]
+            %     dropout   -- proportion of output coordinates zeroed out 
+            %                  for regularization (a compensation factor is
+            %                  applied to the remaining output) [optional]
+            % 
+            %   obj = CNN(inSz, filterSz, nFilters, trainOpts, 'option', value, 
+            %   ...) generates a modified CNN according to the following 
+            %   option/value pairs:
+            %     'stride' -- [vs hs] vt and hz stride of the convolution
+            %     'pool'   -- [pw ph] add a max-pooling layer with pw by ph 
+            %                 pools
+            %     'bias'   -- set to false to disable bias
+            
             if numel(inSz) == 2
                 inSz(3) = 1;
             end
@@ -52,7 +76,7 @@ classdef CNN < handle & AbstractNet
             end
         end
         
-        % AbstractNet implementation ******************************************
+        % AbstractNet implementation ---------------------------------------- %
         
         function S = insize(self)
             S = [self.inSz self.nChannels];

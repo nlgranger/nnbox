@@ -1,12 +1,23 @@
 classdef CosineCompare < handle & AbstractNet
+    % An attempt to build a metric between representation vectors, seems 
+    % unstable numerically with cancellation issues.
+    
+    % author  : Nicolas Granger <nicolas.granger@telecom-sudparis.eu>
+    % licence : MIT
+    
     properties
         inSize;
     end
     
     methods
+        
+        % Constructor ------------------------------------------------------- %
+        
         function obj = CosineCompare(inSize)
             obj.inSize = inSize;
         end
+        
+        % AbstractNet implementation----------------------------------------- %
         
         function S = insize(self)
             S = {self.inSize; self.inSize};

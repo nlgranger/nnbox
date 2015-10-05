@@ -5,9 +5,9 @@ classdef RBM < handle & AbstractNet
     %
     %   Pretraining regularization includes L2 and L1 weight decay, dropout and 
     %   hidden units sparsity.
-    %
-    %   author:
-    %   Nicolas Granger <nicolas.granger@telecom-sudparis.eu>
+
+    % author  : Nicolas Granger <nicolas.granger@telecom-sudparis.eu>
+    % licence : MIT
     
     properties
         nVis;                  % # of visible units (dimensions)
@@ -22,7 +22,7 @@ classdef RBM < handle & AbstractNet
     
     methods
         
-        % Constructor *********************************************************
+        % Constructor ------------------------------------------------------- %
         
         function obj = RBM(nVis, nHid, pretrainOpts, trainOpts)
             % RBM Construct a Restrcted Boltzmann Machine implementation
@@ -94,7 +94,7 @@ classdef RBM < handle & AbstractNet
             obj.c = zeros(nHid, 1);
         end
         
-        % AbstractNet implementation ******************************************
+        % AbstractNet implementation ---------------------------------------- %
         
         function S = insize(self)
             S = self.nVis;
@@ -224,7 +224,7 @@ classdef RBM < handle & AbstractNet
             end
         end
         
-        % Methods *************************************************************
+        % Methods ----------------------------------------------------------- %
         
         function H = vis2hid(self, X, varargin)
             H = RBM.sigmoid(bsxfun(@plus, (X' * self.W)', self.c));

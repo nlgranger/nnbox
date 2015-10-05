@@ -1,4 +1,9 @@
 function C = hingeCost(O, Y, varargin)
+% Draft, not supported or tested
+
+% author  : Nicolas Granger <nicolas.granger@telecom-sudparis.eu>
+% licence : MIT
+
 assert(isnumeric(O) && isvector(O) && isnumeric(Y) && isvector(Y), ...
     'Only numeric one dimensional output is supported');
 

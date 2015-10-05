@@ -1,4 +1,10 @@
 classdef ReshapeNet < handle & AbstractNet
+    % RESHAPENET implements AbstractNet for a dummy network which simply
+    % reshape its input
+    
+    % author  : Nicolas Granger <nicolas.granger@telecom-sudparis.eu>
+    % licence : MIT
+    
     properties
         inSz;
         outSz;
@@ -6,9 +12,16 @@ classdef ReshapeNet < handle & AbstractNet
     
     methods
         
-        % Constructor *********************************************************
+        % Constructor ------------------------------------------------------- %
         
         function obj = ReshapeNet(in, out)
+            % obj = RESHAPENET(in, out) returns an instance of RESHAPENET
+            % which reformats an input of size in to an output of size out.
+            %
+            % obj = RESHAPENET(N1, N2) returns an instance of RESHAPENET
+            % which reformats the output of AbstractNet implementation N1 to 
+            % feed N2
+            
             if isa(in, 'AbstractNet')
                 in = in.outsize();
             end
@@ -29,7 +42,7 @@ classdef ReshapeNet < handle & AbstractNet
             obj.outSz = out;
         end % ReshapeNet(in, out)
 
-        % AbstractNet Implementation ******************************************
+        % AbstractNet implementation ---------------------------------------- %
         
         function S = insize(self)
             if length(self.inSz) == 1

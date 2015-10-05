@@ -1,4 +1,9 @@
 function C = expCost(O, Y, varargin)
+% An experimental error cost function
+
+% author  : Nicolas Granger <nicolas.granger@telecom-sudparis.eu>
+% licence : MIT
+
 thres = 0.7;
 assert(isvector(O) && isvector(Y), 'One dimensional input expected');
 assert(isnumeric(O), 'Only numeric O is supported');

@@ -1,8 +1,10 @@
 function trained = train(net, costFn, X, Y, opts)
 % TRAIN trains a neural network
 %	trained = train(net, costFn, X, Y, opts) returns a trained copy of net.
-%   The supervized training is done using X and Y the input and associated
-%   output samples under the cost function costFn. 
+%   Supervized training performs gradient updates to minimize the cost function 
+%   costFn on the dataset. Sample inputs and associated outputs are given by X 
+%   and Y respectively.
+%
 %   A cost function should take three arguments: 
 %       - the network's output, 
 %       - the expected output samples

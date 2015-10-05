@@ -1,4 +1,8 @@
-function C = L2Cost(O, Y, varargin)
+function C = SquareCost(O, Y, varargin)
+
+% author  : Nicolas Granger <nicolas.granger@telecom-sudparis.eu>
+% licence : MIT
+
 assert(isnumeric(Y), 'Only numeric O and Y are supported');
 
 nSamples = size(O, ndims(O));

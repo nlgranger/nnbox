@@ -4,13 +4,16 @@ classdef MetaNet < handle & AbstractNet
     %   articicial AbstractNet instance. Inputs and outputs are separate
     %   groups of neurons corresponding to each subnetwork.
     
+    % author  : Nicolas Granger <nicolas.granger@telecom-sudparis.eu>
+    % licence : MIT
+    
     properties
         nets         = {}; % subnetworks
     end
     
     methods
         
-        % AbstractNet Implementation ******************************************
+        % AbstractNet implementation ---------------------------------------- %
         
         function S = insize(self)
             S = cellfun(@(n) n.insize(), self.nets, 'UniformOutput', false);
@@ -44,7 +47,7 @@ classdef MetaNet < handle & AbstractNet
                     A = A{1};
                 end
             end
-        end % compute(self, X)
+        end
         
         function [] = pretrain(self, X)
             if ~iscell(X)
@@ -69,7 +72,7 @@ classdef MetaNet < handle & AbstractNet
             end
         end
         
-        % Methods *************************************************************
+        % Methods ----------------------------------------------------------- %
         
         function [] = add(self, net)
             % addNetwork Add new network layer
@@ -78,16 +81,18 @@ classdef MetaNet < handle & AbstractNet
             
             nbNets              = length(self.nets);
             self.nets{nbNets+1} = net.copy();
-        end % add(self, net)
+        end
         
     end % methods
     
     methods(Access = protected)
         
+        % Copyable implementation ------------------------------------------- %
+        
         % Override copyElement method
         function copy = copyElement(self)
             copy = Metanet();
-            % Make a deep copy of the .nets object
+            % Make a deep copy of self.nets
             copy.nets = cell(size(self.nets));
             for i = 1:numel(self.nets)
                 copy.nets{i} = copy(self.nets{i});
