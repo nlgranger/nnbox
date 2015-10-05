@@ -61,12 +61,15 @@ classdef MultiLayerNet < handle & AbstractNet
             bottom = self.frozenBelow + 1;
             G{bottom} = self.nets{bottom}.backprop(A{bottom}, outErr);
             
-            if nargout == 2 % Backprop through frozen layers anyways
-                for l = self.frozenBelow + 1:-1:1
-                    [~, outErr] = self.nets{l}.backprop(A{l}, outErr);
-                end
-                inErr = outErr;
-            end
+            % Silently ignore gradient backpropagation eventhough G is 
+            % requested
+            
+%             if nargout == 2 % Backprop through frozen layers anyways
+%                 for l = self.frozenBelow + 1:-1:1
+%                     [~, outErr] = self.nets{l}.backprop(A{l}, outErr);
+%                 end
+%                 inErr = outErr;
+%             end
         end
         
         function [] = gradientupdate(self, G)
@@ -115,6 +118,7 @@ classdef MultiLayerNet < handle & AbstractNet
         % Override copyElement method
         function copy = copyElement(self)
             copy = MultiLayerNet();
+            copy.frozenBelow = self.frozenBelow;
             % Make a deep copy of self.nets
             copy.nets = cell(size(self.nets));
             for i = 1:numel(self.nets)
