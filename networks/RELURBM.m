@@ -21,7 +21,7 @@ classdef RELURBM < handle & AbstractNet
         trainOpts    = struct(); % supervized training settings
         
         hasHidBias = true;
-    end % properties
+    end
     
     methods
         
