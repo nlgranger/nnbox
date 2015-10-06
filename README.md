@@ -42,9 +42,19 @@ CNN implementation requires the [MatConvNet](http://www.vlfeat.org/matconvnet/)
 library as a backend, follow installation instructions and add the matlab 
 bindings to the path.
 
-## Example
+## Examples
 
-TODO
+```matlab
+X = [0  1  0  1;
+     0  0  1  1];
+Y = [0 .5 .5  1];
+net = Perceptron(2, 1, struct('lRate', 0.5));
+trainOpts = struct('nIter', 100, 'displayEvery', 10);
+train(net, SquareCost(), X, Y, trainOpts);
+```
+
+- MNIST figure recognition using a Deep belief network : 
+  [examples/MNIST_DNN.m](examples/MNIST_DNN.m)
 
 ## Documentation
 

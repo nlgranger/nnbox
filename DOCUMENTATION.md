@@ -1,3 +1,5 @@
+NNBox Documentation
+
 ## Main features
 
 This library is built around the [AbstractNet](networks/AbstractNet.m) 
@@ -114,7 +116,7 @@ To make a copy, one must implement matlab.mixin.Copyable and use the
 copy() method to request a copy of an instance:
 
 ```matlab
-    obj2 = copy(obj1);         % make a 'deep' copy
+obj2 = copy(obj1);         % make a 'deep' copy
 ```
 
 Copyable has a default implementation inherited by the root class of all models 
@@ -181,7 +183,7 @@ A simple constructor:
         end
 ```
 
-Then we implement each method of the AbstractNet Interface:
+Let's finally implement each method of the AbstractNet interface:
 
 ```matlab
         function S = insize(self)
@@ -247,7 +249,7 @@ Example 1:
 trainOpts = struct(...
     'nIter', 50, ...
     'batchSz', 500, ...
-    'batchFn', @pairsBatchFn, ...
+    'batchFn', @customBatchFn, ...
     'displayEvery', 6);
 train(wholeNet, ExpCost(0.75), X, Y, trainOpts);
 ```
