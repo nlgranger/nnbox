@@ -196,13 +196,12 @@ classdef RBM < handle & AbstractNet
             %
             %   inErr  -- network output error derivative w.r.t. neurons
             %             outputs (not activation)
-            nSamples = size(outErr, 2);
             
             % Gradient computation
             ds     = A.s .* (1- A.s);
             delta  = (outErr .* ds);
-            G.dW   = A.x * delta' / nSamples;
-            G.dc   = mean(delta, 2);
+            G.dW   = A.x * delta';
+            G.dc   = sum(delta, 2);
             
             % Error backpropagation
             inErr = self.W * delta;

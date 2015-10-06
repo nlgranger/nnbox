@@ -192,7 +192,7 @@ classdef RELURBM < handle & AbstractNet
             % Gradient computation
             delta  = outErr .* A.ds;
             G.dW   = A.x * delta';
-            G.dc   = mean(delta, 2);
+            G.dc   = sum(delta, 2);
             
             % Error backpropagation
             inErr = self.W * delta;
