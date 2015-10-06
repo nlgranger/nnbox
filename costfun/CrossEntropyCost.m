@@ -8,14 +8,6 @@ classdef CrossEntropyCost < ErrorCost
     
     methods
         
-        % Constructor ------------------------------------------------------- %
-        
-        function obj = CrossEntropyCost(Q)
-            obj.Q = Q;
-        end
-        
-        % ErrorCost implementation ------------------------------------------ %
-        
         function C = compute(~, O, Y)
             assert(isnumeric(O), 'Only numeric O is supported');
             assert(islogical(Y), 'Y must be a boolean array');
@@ -34,7 +26,7 @@ classdef CrossEntropyCost < ErrorCost
             C     = sum(C, 1);
         end
         
-        function C = compute(~, O, Y)
+        function C = gradient(~, O, Y)
             assert(isnumeric(O), 'Only numeric O is supported');
             assert(islogical(Y), 'Y must be a boolean array');
             C     = zeros(size(O));
