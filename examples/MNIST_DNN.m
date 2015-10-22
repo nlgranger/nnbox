@@ -43,7 +43,7 @@ net.add(rbm2);
 
 % Pretrain bottom layers
 fprintf('Pretraining first two layer\n');
-net.pretrain(trainX); % LultilayerNet is configured to pretrain layerwise
+e % LultilayerNet is configured to pretrain layerwise
 
 % Finish network
 rbm3 = RBM(500, 2000, pretrainOpts, trainOpts);

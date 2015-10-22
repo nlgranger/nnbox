@@ -105,6 +105,10 @@ classdef RBM < handle & AbstractNet
         end
 
         function [Y, A] = compute(self, X)
+            if nargout == 2 && isfield(self.trainOpts, 'dropout')
+                A.mask = rand(self.nVis, 1) > self.trainOpts.dropout;
+                X = bsxfun(@times, X, A.mask ./ (1 - self.trainOpts.dropout));
+            end
             Y = self.vis2hid(X, [], false);
             if nargout > 1
                 A.x = X;
@@ -205,6 +209,12 @@ classdef RBM < handle & AbstractNet
             
             % Error backpropagation
             inErr = self.W * delta;
+            
+            % Dropout
+            if isfield(self.trainOpts, 'dropout')
+                G.dW  = bsxfun(@times, G.dW, A.mask);
+                inErr = bsxfun(@times, inErr, A.mask);
+            end
         end
         
         function [] = gradientupdate(self, G)
@@ -225,11 +235,11 @@ classdef RBM < handle & AbstractNet
         
         % Methods ----------------------------------------------------------- %
         
-        function H = vis2hid(self, X, varargin)
+        function H = vis2hid(self, X)
             H = RBM.sigmoid(bsxfun(@plus, (X' * self.W)', self.c));
         end
         
-        function V = hid2vis(self, H, varargin)
+        function V = hid2vis(self, H)
             V = RBM.sigmoid(bsxfun(@plus, self.W * H, self.b));
         end
         
