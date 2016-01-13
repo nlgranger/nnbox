@@ -1,18 +1,17 @@
 classdef GBRBM < handle & RBM
     % GBRBM Restricted Boltzmann Machine Model object
-    %   RBM implements AbstractNet for Restricted Boltzmann Machines with 
-    %   gaussian visible units and binary hidden units. Input unit variance
-    %   is not learnt and fixed to 1.
+    %   GBRBM implements AbstractNet for Restricted Boltzmann Machines with
+    %   gaussian visible units and binary hidden units. Variance on input units
+    %   is not learnt and assumed to be 1, so data should be normalized first.
     %
-    %   Pretraining regularization includes L2 and L1 weight decay, dropout and 
-    %   hidden units sparsity.
+    %   Most of the configuration settings are inherited from RBM otherwise.
 
     % author  : Nicolas Granger <nicolas.granger@telecom-sudparis.eu>
     % licence : MIT
     
     methods
         function obj = GBRBM(nVis, nHid, pretrainOpts, trainOpts)
-            % GBRBM Construct an instance of Restrcted Boltzmann Machine
+            % GBRBM Construct an instance of Restricted Boltzmann Machine
             %   Refer to RBM for the documentation
             obj@RBM(nVis, nHid, pretrainOpts, trainOpts)
         end

@@ -1,5 +1,5 @@
 classdef RBM < handle & AbstractNet
-    % RBM Restricted Boltzmann Machine Model object
+    % RBM Restricted Boltzmann Machine Model
     %   RBM implements AbstractNet for Restricted Boltzmann Machines with 
     %   binary units on both visible and hidden units.
     %

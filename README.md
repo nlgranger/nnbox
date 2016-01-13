@@ -20,7 +20,7 @@ FYI, here is a list of other existing libraries:
   A popular deep learning toolbox
 - [MEDAL](https://github.com/dustinstansbury/medal) Similarily provides 
   implementations for several sorts of Deep Learning models.
-- [MatConvNet](http://www.vlfeat.org/matconvnet/) Provides awrapper to a c++ 
+- [MatConvNet](http://www.vlfeat.org/matconvnet/) Provides awrapper to a C++ 
   implementation of convolutional neural networks. It is actually used here 
   for the CNN model.
 

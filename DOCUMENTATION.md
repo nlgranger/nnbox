@@ -1,4 +1,4 @@
-NNBox Documentation
+# NNBox Documentation
 
 ## Main features
 
@@ -34,7 +34,7 @@ can work as follows:
 ```matlab
 im1  = imread('image1.jpg');
 im2  = imread('image1.jpg');
-data = cat(3, im1, im2);
+data = cat(3, im1, im2); % concatenate samples along the third dimension
 res  = net.compute(data);
 % res now contains 2 columns with the output of the network for im1 and im2
 ```
@@ -50,7 +50,7 @@ res  = [res, net.compute(im1)]; % horizontal concatenation
 
 When building datasets for supervized training, input samples are associated to 
 output labels. The labels should follow the same convention and the same order 
-as the input values (i-th input is assumed to match the i-th labe)l.
+as the input values (i-th input is assumed to match the i-th labe).
 
 Most of the time, the input and output values are vectors, but for convenience, 
 this library also uses the notion of groups of inputs, which is implemented 
