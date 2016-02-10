@@ -9,11 +9,16 @@ toolboxes has been concieved with two main objectives:
 - Providing a flexible interface where building blocks can be arranged 
   together easily.
 
-This library does not focus on completeness, because it rarely gives satisfying 
-results. Instead it tries to provide simple and flexible architectural 
-fundations to help you implement your own model quickly.
+In particular, this library provides support for Restricted Boltzmann Machines
+(RBM), Convolutional Neural Networks (CNN), simple perceptrons models. It
+allows to arrange these models in parallel, as stacked multiple layers, or even
+in a Siamese network architecture.
 
-FYI, here is a list of other existing libraries:
+This library does not focus on completeness though, because attempting to do so
+rarely gives satisfying results. Instead it tries to provide simple and
+flexible architectural fundations to help you implement your own model quickly.
+
+For your information, here is a list of other existing libraries:
 
 - [Matlab Neural Network toolbox](http://fr.mathworks.com/help/nnet/index.html)
 - [DeepLearnToolbox](https://github.com/rasmusbergpalm/DeepLearnToolbox) 
@@ -24,11 +29,13 @@ FYI, here is a list of other existing libraries:
   implementation of convolutional neural networks. It is actually used here 
   for the CNN model.
 
+
 ## Requirements
 
 As far as I can tell, any version of matlab above R2011a should work, R2014 is 
 known to work. Octave is not supported because classes are not yet fully 
 supported.
+
 
 ## Installation
 
@@ -41,6 +48,7 @@ addpath('nnbox/utils:nnbox/networks:nnbox/costfun:nnbox/distances');
 CNN implementation requires the [MatConvNet](http://www.vlfeat.org/matconvnet/) 
 library as a backend, follow installation instructions and add the matlab 
 bindings to the path.
+
 
 ## Examples
 
@@ -55,6 +63,7 @@ train(net, SquareCost(), X, Y, trainOpts);
 
 - MNIST figure recognition using a Deep belief network : 
   [examples/MNIST_DNN.m](examples/MNIST_DNN.m)
+
 
 ## Documentation
 
