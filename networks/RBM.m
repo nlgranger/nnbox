@@ -184,7 +184,7 @@ classdef RBM < handle & AbstractNet
                     % Reconstruct input samples
                     R = self.hid2vis(self.vis2hid(X));
                     % Mean square reconstruction error
-                    msre = mean(sqrt(mean((R - X) .^2)), 2);
+                    msre = sqrt(mean(mean((R - X) .^2)));
                     fprintf('%03d , msre = %f\n', e, msre);
                 end
             end

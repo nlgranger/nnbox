@@ -16,7 +16,7 @@ classdef RELURBM < handle & AbstractNet
         nHid;                    % # of hidden units
         W;                       % connection weights
         b;                       % visible units bias
-        c;                       % hidden units bias        
+        c;                       % hidden units bias
         pretrainOpts = struct(); % pretraining settings
         trainOpts    = struct(); % supervized training settings
         
@@ -27,7 +27,8 @@ classdef RELURBM < handle & AbstractNet
         
         % Constructor ------------------------------------------------------- %
         
-        function obj = RELURBM(nVis, nHid, pretrainOpts, trainOpts, varargin)
+        function obj = RELURBM(nVis, nHid, pretrainOpts, trainOpts, ...
+                varargin)
             % RELURBM Constructor for RELURBM
             %   rbm = RELURBM(nVis, nHid, pretrainOpts, trainOpts)
             %   returns an rbm with nVis visible and nHid output hidden
@@ -37,13 +38,15 @@ classdef RELURBM < handle & AbstractNet
             %       dropVis   -- visible units dropout rate [optional]
             %       dropout   -- hidden units dropout rate [optional]
             %       momentum  -- gradient momentum [optional]
-            %       decayNorm -- norm of the weight penalty (1 or 2) [optional]
+            %       wPenalty  -- L2 weight penalty coefficient [optional]
+            %       gradThres -- maximum norm of the gradient [optional]
+            %
             %   Similarly, trainOpts has configuration for supervized
             %   training:
             %       lRate     -- learning rate
             %       dropout   -- input units dropout rate [optional]
             %
-            %   rbm = RELURBM(nVis, nHid, pretrainOpts, trainOpts, false) 
+            %   rbm = RELURBM(nVis, nHid, pretrainOpts, trainOpts, 'noBias')
             %   creates an RBM without bias on hidden units.
             
             obj.nVis = nVis;
@@ -66,11 +69,11 @@ classdef RELURBM < handle & AbstractNet
             obj.trainOpts = trainOpts;
             
             % Initializing weights
-            obj.W = randn(nVis, nHid) / nVis;
-            obj.b = ones(nVis, 1) / nHid;
-            obj.c = 2 * ones(nHid, 1) / nVis;
+            obj.W = 5 * randn(nVis, nHid) / sqrt(nVis * nHid);
+            obj.b = 5 * ones(nVis, 1) / nVis;
+            obj.c = 5 * ones(nHid, 1) / nHid;
             
-            if ~isempty(varargin) && varargin{1} == false
+            if ~isempty(varargin) && strcmp(varargin{1}, 'noBias')
                 obj.hasHidBias = false;
                 obj.c = 0;
             end
@@ -128,6 +131,21 @@ classdef RELURBM < handle & AbstractNet
                         dc = dc + opts.wPenalty * self.c;
                     end
                     
+                    % Cap gradient value
+                    if isfield(opts, 'gradThres')
+                        gradNorm = max([norm(dW) / sqrt(numel(dW)), ...
+                            norm(db) / numel(db), ...
+                            norm(dc) / numel(dc)]) ...
+                            * opts.lRate;
+                        if gradNorm > opts.gradThres
+                            fprintf(1, sprintf(...
+                                'capped gradient from %d\n', gradNorm));
+                            dW = dW * opts.gradThres / gradNorm;
+                            db = db * opts.gradThres / gradNorm;
+                            dc = dc * opts.gradThres / gradNorm;
+                        end
+                    end
+                    
                     % Momentum
                     dW = dWold * opts.momentum + (1 - opts.momentum) * dW;
                     db = dbold * opts.momentum + (1 - opts.momentum) * db;
@@ -155,7 +173,7 @@ classdef RELURBM < handle & AbstractNet
                     drop = self.selectuseless(Y);
                     self.W(:, drop) = ...
                         randn(self.nVis, sum(drop)) / self.nVis;
-                    self.b(drop) = ...
+                    self.c(drop) = ...
                         abs(randn(sum(drop), 1) / self.nVis);
                     ndrop = ndrop + sum(drop);
                     if sum(drop) > 0
@@ -164,7 +182,7 @@ classdef RELURBM < handle & AbstractNet
                     drop = self.selectredundant(Y, 2 * self.nHid);
                     self.W(:, drop) = ...
                         randn(self.nVis, numel(drop)) / self.nVis;
-                    self.b(drop) = ...
+                    self.c(drop) = ...
                         abs(randn(numel(drop), 1) / self.nVis);
                     ndrop = ndrop + numel(drop);
                     if numel(drop) > 0
@@ -179,16 +197,15 @@ classdef RELURBM < handle & AbstractNet
                     R = self.compute(X);
                     R = max(0, bsxfun(@plus, self.W * R, self.b));
                     % Mean square reconstruction error
-                    msre = mean(mean((R - X) .^2), 2);
-                    me   = mean(mean(R - X));
-                    fprintf('%03d , msre = %g, me = %g, dropped = %d\n', ...
-                        e, msre, me, ndrop);
+                    rmse = sqrt(mean(sum((R - X) .^2)));
+                    fprintf('%03d , rmse = %g, dropped = %d\n', ...
+                        e, rmse, ndrop);
                     ndrop = 0;
                 end
             end
         end
         
-        function [G, inErr] = backprop(self, A, outErr)            
+        function [G, inErr] = backprop(self, A, outErr)
             % Gradient computation
             delta  = outErr .* A.ds;
             G.dW   = A.x * delta';
@@ -279,11 +296,13 @@ classdef RELURBM < handle & AbstractNet
         % Empirical selection of redundant neurons
         function drop = selectredundant(Y, n)
             % drop = selectredundant(Y, n) returns a binary vectors of
-            % neurons which seem redundant (similar outputs). Comparison are
-            % run on n random pairs.
+            % neurons which seem redundant (similar outputs). Comparison
+            % are run on n random pairs.
             
-            % original idea from http://stackoverflow.com/questions/15793172/
-            % efficiently-generating-unique-pairs-of-integers#answer-15795308
+            % original idea from
+            % http://stackoverflow.com/questions/15793172/
+            % efficiently-generating-unique-pairs-of-integers
+            % #answer-15795308
             h = size(Y, 1);
             r = randperm(h/2*(h-1), n);
             q = floor(sqrt(8*(r-1) + 1)/2 + 1/2);
