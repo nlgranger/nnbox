@@ -109,7 +109,7 @@ classdef RBM < handle & AbstractNet
                 A.mask = rand(self.nVis, 1) > self.trainOpts.dropout;
                 X = bsxfun(@times, X, A.mask ./ (1 - self.trainOpts.dropout));
             end
-            Y = self.vis2hid(X, [], false);
+            Y = self.vis2hid(X);
             if nargout > 1
                 A.x = X;
                 A.s = Y;
