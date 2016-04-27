@@ -3,9 +3,10 @@
 NNBox is a Matlab &copy; toolbox for neural networks. Many other toolboxes are 
 already available for matlab and may either offer more models, a higher levels 
 of support, better optimization, or simply a bigger user community... This 
-toolboxes has been concieved with two main objectives:
+toolbox tries to focus on different objectives:
 - Providing very clear and simple implementations of some neural networks 
   models and architectures.
+- Providing a simple template to implement new models rapidly
 - Providing a flexible interface where building blocks can be arranged 
   together easily.
 
@@ -32,8 +33,8 @@ For your information, here is a list of other existing libraries:
 
 ## Requirements
 
-As far as I can tell, any version of matlab above R2011a should work, R2014 is 
-known to work. Octave is not supported because classes are not yet fully 
+As far as I can tell, any version of matlab above R2011a should work, R2014a 
+is known to work. Octave is not supported because classes are not yet fully 
 supported.
 
 
