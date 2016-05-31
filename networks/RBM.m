@@ -45,7 +45,7 @@ classdef RBM < handle & AbstractNet
             %       sparsity    -- sparseness objective [optional]
             %       sparseGain  -- learning rate gain for sparsity [optional]
             %
-            %   Similary, training Opts support the following fields:
+            %   Similary, trainOpts support the following fields:
             %       lRate       -- learning rate
             %       nIter       -- number of gradient iterations
             %       momentum    -- gradient moementum
